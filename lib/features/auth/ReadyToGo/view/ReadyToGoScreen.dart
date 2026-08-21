@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lexverse/core/routes/routesName.dart';
 
 class ReadyToGoScreen extends StatelessWidget {
   const ReadyToGoScreen({super.key});
@@ -98,7 +99,7 @@ class ReadyToGoScreen extends StatelessWidget {
                 height: 50.h,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigate to Home or Main Dashboard Screen
+                    Navigator.pushNamed(context, RouteName.parentScreen);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFC107),
