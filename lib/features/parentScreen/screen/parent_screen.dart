@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../home/view/homeScreen.dart';
+import '../../library/view/librarScreen.dart';
 import '../viewModel/parentScreenProvider.dart';
 
 class ParentScreen extends StatelessWidget {
@@ -23,7 +24,6 @@ class ParentScreen extends StatelessWidget {
         return Scaffold(
           body: IndexedStack(index: provider.currentIndex, children: _pages),
 
-          // মাঝখানের উঁচানো LIVE বাটন (Floating Action Button)
           floatingActionButtonLocation:
               FloatingActionButtonLocation.centerDocked,
           floatingActionButton: Container(
@@ -31,11 +31,11 @@ class ParentScreen extends StatelessWidget {
             width: 62.r,
             padding: EdgeInsets.all(3.r),
             decoration: const BoxDecoration(
-              color: Colors.white, // বাটনের চারপাশের সাদা কাট-আউট বর্ডার
+              color: Colors.white,
               shape: BoxShape.circle,
             ),
             child: FloatingActionButton(
-              onPressed: () => provider.setIndex(2), // Index 2 = LIVE Page
+              onPressed: () => provider.setIndex(2),
               backgroundColor: const Color(0xFF0F2C43), // ডার্ক নেভি ব্লু কালার
               elevation: 4,
               shape: const CircleBorder(),
@@ -182,16 +182,6 @@ class ParentScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-
-class LibraryScreen extends StatelessWidget {
-  const LibraryScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("Library Screen"));
   }
 }
 

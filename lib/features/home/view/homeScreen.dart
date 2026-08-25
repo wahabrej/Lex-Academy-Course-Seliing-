@@ -112,8 +112,8 @@ class HomeScreen extends StatelessWidget {
         Row(
           children: [
             Image.asset(
-              'assets/icons/logo.png',
-              width: 32.w,
+              'assets/icons/login_logo.png',
+              width: 180.w,
               height: 32.h,
               errorBuilder: (context, error, stackTrace) => Icon(
                 Icons.balance,
@@ -121,25 +121,7 @@ class HomeScreen extends StatelessWidget {
                 size: 30.r,
               ),
             ),
-            SizedBox(width: 8.w),
-            RichText(
-              text: TextSpan(
-                style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold),
-                children: const [
-                  TextSpan(
-                    text: 'Lex ',
-                    style: TextStyle(color: Color(0xFF0F2C43)),
-                  ),
-                  TextSpan(
-                    text: 'Academy',
-                    style: TextStyle(
-                      color: Color(0xFF0F2C43),
-                      fontFamily: 'Serif',
-                    ),
-                  ),
-                ],
-              ),
-            ),
+
           ],
         ),
         Stack(

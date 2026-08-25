@@ -289,17 +289,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       height: 46.h,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Action for continue
-                          // নির্বাচিত ফুল নাম্বার পেতে পারেন এভাবে:
-                          final fullPhoneNumber =
-                              '$_selectedCountryCode${_phoneController.text}';
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Full Phone Number: $fullPhoneNumber',
-                              ),
-                            ),
-                          );
+                Navigator.pushNamed(context, RouteName.readyToGoScreen);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFFC107),
