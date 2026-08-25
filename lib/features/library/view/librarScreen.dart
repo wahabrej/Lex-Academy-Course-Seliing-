@@ -308,6 +308,8 @@ class _HubPage extends StatelessWidget {
                     height: 1.5,
                   ),
                 ),
+
+
                 const SizedBox(height: 20),
                 _SearchField(
                   hint: 'Search materials, decks, acts...',
