@@ -8,57 +8,47 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF072B3E),
+      backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
         children: [
-          // ---------------- হেডার ----------------
+          // ---------------- হেডার (Updated with rounded corners and back button) ----------------
           _buildHeader(context),
 
           // ---------------- বডি ----------------
           Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ---------------- ট্যাব রো ----------------
-                    Row(
-                      children: [
-                        _buildTabChip('Overview', true),
-                        SizedBox(width: 8.w),
-                        _buildTabChip('Subject', false),
-                        SizedBox(width: 8.w),
-                        _buildTabChip('Program', false),
-                      ],
-                    ),
-                    SizedBox(height: 20.h),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ---------------- ট্যাব রো ----------------
+                  Row(
+                    children: [
+                      _buildTabChip('Overview', true),
+                      SizedBox(width: 8.w),
+                      _buildTabChip('Subject', false),
+                      SizedBox(width: 8.w),
+                      _buildTabChip('Program', false),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
 
-                    // ---------------- স্ট্যাটস গ্রিড ----------------
-                    _buildStatsGrid(),
-                    SizedBox(height: 20.h),
+                  // ---------------- স্ট্যাটস গ্রিড ----------------
+                  _buildStatsGrid(),
+                  SizedBox(height: 20.h),
 
-                    // ---------------- টপিক পারফরম্যান্স ----------------
-                    _buildTopicPerformance(),
-                    SizedBox(height: 16.h),
+                  // ---------------- টপিক পারফরম্যান্স ----------------
+                  _buildTopicPerformance(),
+                  SizedBox(height: 16.h),
 
-                    // ---------------- উইকনেস্ট এরিয়া ----------------
-                    _buildWeakestArea(context),
-                    SizedBox(height: 16.h),
+                  // ---------------- উইকনেস্ট এরিয়া ----------------
+                  _buildWeakestArea(context),
+                  SizedBox(height: 16.h),
 
-                    // ---------------- স্কোর ট্রেন্ড ----------------
-                    _buildScoreTrend(),
-                    SizedBox(height: 30.h),
-                  ],
-                ),
+                  // ---------------- স্কোর ট্রেন্ড ----------------
+                  _buildScoreTrend(),
+                  SizedBox(height: 30.h),
+                ],
               ),
             ),
           ),
@@ -67,26 +57,43 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // ---------------- হেডার ----------------
+  // ---------------- হেডার উইজেট ----------------
   Widget _buildHeader(BuildContext context) {
     return Container(
-      color: const Color(0xFF072B3E),
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Color(0xFF072B3E),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 16.h),
+          padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 24.h),
           child: Row(
             children: [
-              Container(
-                padding: EdgeInsets.all(8.r),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: const Color(0xFF072B3E),
-                  size: 16.sp,
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    color: const Color(0xFF072B3E),
+                    size: 16.sp,
+                  ),
                 ),
               ),
               SizedBox(width: 16.w),
@@ -311,7 +318,6 @@ class DashboardScreen extends StatelessWidget {
             ),
           )),
           SizedBox(height: 8.h),
-          // এক্সিস লেবেল
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
