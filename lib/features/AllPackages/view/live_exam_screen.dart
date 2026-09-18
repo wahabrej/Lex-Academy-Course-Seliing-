@@ -13,6 +13,7 @@ class LiveExamScreen extends StatelessWidget {
           // ---------------- হেডার ----------------
           _buildHeader(context, 'Live Exam'),
 
+
           // ---------------- বডি ----------------
           Expanded(
             child: SingleChildScrollView(
@@ -43,21 +44,29 @@ class LiveExamScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ব্যাক বাটন
-              Container(
-                padding: EdgeInsets.all(8.r),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: const Color(0xFF072B3E),
-                  size: 16.sp,
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    color: const Color(0xFF072B3E),
+                    size: 16.sp,
+                  ),
                 ),
               ),
               SizedBox(height: 20.h),
-              // টাইটেল
               Text(
                 title,
                 style: TextStyle(
@@ -67,7 +76,6 @@ class LiveExamScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16.h),
-              // সাবটাইটেল
               Text(
                 '১৯তম বিজেএস লিখিত পরীক্ষার প্রস্তুতি',
                 style: TextStyle(
@@ -103,7 +111,6 @@ class LiveExamScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // টপ ব্যাজ রো
           Row(
             children: [
               Container(
@@ -140,7 +147,6 @@ class LiveExamScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.h),
-          // টাইটেল
           Text(
             '১৯তম বিজেএস লিখিত পরীক্ষার প্রস্তুতি',
             style: TextStyle(
@@ -151,7 +157,6 @@ class LiveExamScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 8.h),
-          // Subject Name
           Text(
             'Subject Name: অপরাধ সঞ্চার আইনসমূহ',
             style: TextStyle(
@@ -160,7 +165,6 @@ class LiveExamScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 12.h),
-          // মেটা তথ্য
           Row(
             children: [
               Text(
@@ -183,7 +187,6 @@ class LiveExamScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: 20.h),
-          // পরীক্ষা দিন বাটন
           SizedBox(
             width: double.infinity,
             height: 44.h,
@@ -192,7 +195,7 @@ class LiveExamScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF5B301),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(20.r),
                 ),
                 elevation: 0,
               ),

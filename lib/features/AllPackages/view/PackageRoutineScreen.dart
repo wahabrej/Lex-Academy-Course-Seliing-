@@ -8,63 +8,101 @@ class PackageRoutineScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Container(
-            padding: EdgeInsets.all(8.r),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F2F5),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Icon(
-              Icons.arrow_back_ios_new,
-              color: const Color(0xFF1A1A1A),
-              size: 16.sp,
+      body: Column(
+        children: [
+          // ---------------- হেডার ----------------
+          _buildHeader(context, 'এই প্যাকেজের রুটিন'),
+
+          // ---------------- বডি ----------------
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ---------------- Active সেকশন ----------------
+                  _buildSectionHeader(
+                    title: 'Active',
+                    count: '১',
+                    icon: Icons.calendar_today,
+                  ),
+                  SizedBox(height: 12.h),
+                  _buildRoutineCard(),
+                  SizedBox(height: 24.h),
+
+                  // ---------------- Archived সেকশন ----------------
+                  _buildSectionHeader(
+                    title: 'Archived',
+                    count: '৩টি',
+                    icon: Icons.archive_outlined,
+                  ),
+                  SizedBox(height: 12.h),
+                  _buildRoutineCard(),
+                  SizedBox(height: 16.h),
+                  _buildRoutineCard(),
+                  SizedBox(height: 16.h),
+                  _buildRoutineCard(),
+                  SizedBox(height: 30.h),
+                ],
+              ),
             ),
           ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'এই প্যাকেজের রুটিন',
-          style: TextStyle(
-            color: const Color(0xFF1A1A1A),
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w700,
-          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------- হেডার ----------------
+  Widget _buildHeader(BuildContext context, String title) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Color(0xFF072B3E),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ---------------- Active সেকশন ----------------
-            _buildSectionHeader(
-              title: 'Active',
-              count: '১',
-              icon: Icons.calendar_today,
-            ),
-            SizedBox(height: 12.h),
-            _buildRoutineCard(),
-            SizedBox(height: 24.h),
-
-            // ---------------- Archived সেকশন ----------------
-            _buildSectionHeader(
-              title: 'Archived',
-              count: '৩টি',
-              icon: Icons.archive_outlined,
-            ),
-            SizedBox(height: 12.h),
-            _buildRoutineCard(),
-            SizedBox(height: 16.h),
-            _buildRoutineCard(),
-            SizedBox(height: 16.h),
-            _buildRoutineCard(),
-            SizedBox(height: 30.h),
-          ],
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 24.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    color: const Color(0xFF072B3E),
+                    size: 16.sp,
+                  ),
+                ),
+              ),
+              SizedBox(height: 20.h),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

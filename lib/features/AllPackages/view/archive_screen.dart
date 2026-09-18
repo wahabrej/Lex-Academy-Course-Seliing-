@@ -57,16 +57,26 @@ class ArchiveScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: EdgeInsets.all(8.r),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: const Color(0xFF072B3E),
-                  size: 16.sp,
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    color: const Color(0xFF072B3E),
+                    size: 16.sp,
+                  ),
                 ),
               ),
               SizedBox(height: 20.h),
@@ -118,7 +128,6 @@ class ArchiveScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ডেট ব্যাজ ও UNCHECKED (শুধু দ্বিতীয় কার্ডে)
           if (hasDateBadge) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -157,12 +166,9 @@ class ArchiveScreen extends StatelessWidget {
             ),
             SizedBox(height: 12.h),
           ],
-
-          // মেইন কন্টেন্ট রো
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // বাম দিকের ব্যাজ ও মাস
               Column(
                 children: [
                   Container(
@@ -215,7 +221,6 @@ class ArchiveScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(width: 12.w),
-              // ডান দিকের কন্টেন্ট
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,8 +270,6 @@ class ArchiveScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: 16.h),
-
-          // বাটন রো
           if (showButtons) ...[
             Row(
               children: [
@@ -276,7 +279,7 @@ class ArchiveScreen extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.grey.shade300),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(20.r),
                       ),
                       padding: EdgeInsets.symmetric(vertical: 12.h),
                     ),
@@ -297,7 +300,7 @@ class ArchiveScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF072B3E),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(20.r),
                       ),
                       padding: EdgeInsets.symmetric(vertical: 12.h),
                       elevation: 0,
@@ -315,8 +318,6 @@ class ArchiveScreen extends StatelessWidget {
               ],
             ),
           ],
-
-          // রেজাল্ট বাটন (দ্বিতীয় কার্ডে)
           if (showResultButton) ...[
             SizedBox(height: 8.h),
             SizedBox(
@@ -339,7 +340,7 @@ class ArchiveScreen extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.grey.shade300),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
+                    borderRadius: BorderRadius.circular(20.r),
                   ),
                   padding: EdgeInsets.symmetric(vertical: 12.h),
                 ),

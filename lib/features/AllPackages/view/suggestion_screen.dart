@@ -64,16 +64,26 @@ class SuggestionScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: EdgeInsets.all(8.r),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: const Color(0xFF072B3E),
-                  size: 16.sp,
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    color: const Color(0xFF072B3E),
+                    size: 16.sp,
+                  ),
                 ),
               ),
               SizedBox(height: 20.h),
@@ -243,7 +253,7 @@ class SuggestionScreen extends StatelessWidget {
         _buildBulletText('বাংলা সাহিত্য'),
         _buildBulletText('সাহিত্য বিচিত্রা (মজিবর স্যার)'),
         _buildBulletText('সাহিত্য অংশ:'),
-        _buildBulletText('বাংলা সাহিত্যের ইতিহাস - মাসুদুল আলম'),
+        _buildBulletText('বাংলা সাহিত্যের ইতিহাস - মাসুদul আলম'),
         _buildBulletText('ক্লাসিক কারেন্ট জার্নাল'),
         _buildBulletText('সাহিত্য কথা - রশ্নে রায় (কাকলী প্রকাশনী)'),
         SizedBox(height: 16.h),
