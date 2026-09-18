@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../AllPackages/view/AllPackagesScreen.dart';
 import '../../home/view/homeScreen.dart';
 import '../../library/view/librarScreen.dart';
 import '../../profile/view/profileScreen.dart';
@@ -13,7 +14,7 @@ class ParentScreen extends StatelessWidget {
     HomeScreen(),
     LibraryScreen(),
     LiveScreen(),
-    PackagesScreen(),
+    AllPackagesScreen(),
     ProfileScreen(),
   ];
 
@@ -194,12 +195,4 @@ class LiveScreen extends StatelessWidget {
   }
 }
 
-class PackagesScreen extends StatelessWidget {
-  const PackagesScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("Packages Screen"));
-  }
-}
 
