@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:lexverse/core/routes/routesName.dart';
+import '../viewModel/loginViewModel.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,8 +25,37 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    final loginViewModel = context.read<LoginViewModel>();
+    final success = await loginViewModel.login(email, password);
+
+    if (success) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, RouteName.parentScreen);
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loginViewModel.errorMessage ?? 'Login failed')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loginViewModel = context.watch<LoginViewModel>();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -33,8 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
               SizedBox(height: 20.h),
-
-              // 1. App Logo Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -42,7 +71,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     'assets/icons/login_logo.png',
                     width: 200.w,
                     fit: BoxFit.contain,
-                    // Asset না পেলে অ্যাপ যেন ক্র্যাশ না করে তার জন্য Fallback Icon
                     errorBuilder: (context, error, stackTrace) => Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -66,8 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               SizedBox(height: 36.h),
-
-              // 2. Main Login Card Container
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 28.h),
@@ -78,7 +104,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
                     Center(
                       child: Text(
                         'Welcome Back',
@@ -90,8 +115,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     SizedBox(height: 28.h),
-
-                    // Email Field
                     Text(
                       'Email',
                       style: TextStyle(
@@ -128,8 +151,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     SizedBox(height: 18.h),
-
-                    // Password Field
                     Text(
                       'Password',
                       style: TextStyle(
@@ -180,8 +201,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     SizedBox(height: 14.h),
-
-                    // Remember Me & Forgot Password Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -232,18 +251,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     SizedBox(height: 24.h),
-
-                    // Login Button
                     SizedBox(
                       width: double.infinity,
                       height: 48.h,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(
-                            context,
-                            RouteName.parentScreen,
-                          );
-                        },
+                        onPressed: loginViewModel.isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFFC107),
                           elevation: 0,
@@ -251,19 +263,26 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(24.r),
                           ),
                         ),
-                        child: Text(
-                          'Login',
-                          style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
+                        child: loginViewModel.isLoading
+                            ? SizedBox(
+                                height: 20.h,
+                                width: 20.h,
+                                child: const CircularProgressIndicator(
+                                  color: Colors.black,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
                       ),
                     ),
                     SizedBox(height: 24.h),
-
-                    // Or Sign in with Label
                     Center(
                       child: Text(
                         'Or Sign in with',
@@ -274,31 +293,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     SizedBox(height: 18.h),
-
-                    // Social Media Buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Facebook Button
                         _buildSocialButton(
                           iconPath: "assets/icons/fb.png",
-                         // fallbackIcon: Icons.facebook,
                           iconColor: const Color(0xFF1877F2),
                           onTap: () {},
                         ),
                         SizedBox(width: 16.w),
-                        // Google Button
                         _buildSocialButton(
                           iconPath: "assets/icons/google.png",
-                         // fallbackIcon: Icons.g_mobiledata_rounded,
                           iconColor: Colors.redAccent,
                           onTap: () {},
                         ),
                       ],
                     ),
                     SizedBox(height: 28.h),
-
-                    // Sign Up Prompt
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -338,10 +349,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Common Social Button Helper Component
   Widget _buildSocialButton({
     required String iconPath,
-    //required IconData fallbackIcon,
     required Color iconColor,
     required VoidCallback onTap,
   }) {
@@ -359,11 +368,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Image.asset(
           iconPath,
           fit: BoxFit.contain,
-          // errorBuilder: (context, error, stackTrace) => Icon(
-          //   fallbackIcon,
-          //   color: iconColor,
-          //   size: 26.r,
-          // ),
         ),
       ),
     );

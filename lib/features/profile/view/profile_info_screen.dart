@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../viewModel/profileViewModel.dart';
 
 class ProfileInfoScreen extends StatelessWidget {
   const ProfileInfoScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final profileViewModel = context.watch<ProfileViewModel>();
+    final user = profileViewModel.userData;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -15,26 +20,33 @@ class ProfileInfoScreen extends StatelessWidget {
         ),
         title: const Text('Profile', style: TextStyle(color: Colors.white)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildInfoRow('Name', 'Sujoy'),
-                _buildInfoRow('Email', 'sujoybanik75@gmail.com'),
-                _buildInfoRow('Phone', '01861631621'),
-                _buildInfoRow('University', 'Ahsanullah University of Science\nand Technology (AUST)'),
-                _buildInfoRow('Profession', 'Student'),
-                _buildInfoRow('Gender', 'Male'),
-                _buildInfoRow('LL.B Year', '—'),
-              ],
+      body: profileViewModel.isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF003B5C),
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildInfoRow('Name', user?.name ?? '—'),
+                      _buildInfoRow('Email', user?.email ?? '—'),
+                      _buildInfoRow('Phone', user?.phone ?? '—'),
+                      _buildInfoRow('University', user?.university ?? '—'),
+                      _buildInfoRow('Profession', user?.profession ?? '—'),
+                      _buildInfoRow('Gender', user?.gender ?? '—'),
+                      _buildInfoRow('Role', user?.role.toUpperCase() ?? '—'),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 

@@ -7,6 +7,7 @@ class RouteName {
   static const allPackageGridScreen = "allPackageGridScreen";
   static const loginScreen = "loginScreen";
   static const signUpScreen = "signUpScreen";
+  static const signUpStepTwoScreen = "signUpStepTwoScreen";
   static const readyToGoScreen = "readyToGoScreen";
   static const onboardingScreen = "onboardingScreen";
   static const packageScreen = "packageScreen";
@@ -20,4 +21,5 @@ class RouteName {
   static const dashboardScreen = "dashboardScreen";
   static const suggestionScreen = "suggestionScreen";
   static const bookReferenceScreen = "bookReferenceScreen";
+  static const legalDictionaryScreen = "legalDictionaryScreen";
 }
