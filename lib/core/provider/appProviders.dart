@@ -6,6 +6,9 @@ import '../../features/parentScreen/viewModel/parentScreenProvider.dart';
 import '../../features/library/viewModel/legal_dictionary_view_model.dart';
 import '../../features/library/viewModel/flashcard_view_model.dart';
 import '../../features/library/viewModel/bare_acts_view_model.dart';
+import '../../features/library/viewModel/legal_research_view_model.dart';
+import '../../features/library/viewModel/case_reference_view_model.dart';
+import '../../features/library/viewModel/question_bank_view_model.dart';
 import '../../features/AllPackages/viewModel/package_view_model.dart';
 
 class AppProviders {
@@ -31,6 +34,15 @@ class AppProviders {
       ),
       ChangeNotifierProvider<BareActsViewModel>(
         create: (context) => BareActsViewModel(),
+      ),
+      ChangeNotifierProvider<LegalResearchViewModel>(
+        create: (context) => LegalResearchViewModel(),
+      ),
+      ChangeNotifierProvider<CaseReferenceViewModel>(
+        create: (context) => CaseReferenceViewModel(),
+      ),
+      ChangeNotifierProvider<QuestionBankViewModel>(
+        create: (context) => QuestionBankViewModel(),
       ),
       ChangeNotifierProvider<PackageViewModel>(
         create: (context) => PackageViewModel(),

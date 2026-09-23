@@ -26,4 +26,20 @@ class ApiEndPoint {
   static const String packageAccessCounts = "$baseUrl/packages/access/counts";
   static const String packageAccess = "$baseUrl/packages/access";
   static String packageDetails(String id) => "$baseUrl/packages/$id";
+
+  // Legal Research
+  static const String legalResearch = "$baseUrl/legal-research";
+
+  // Case References
+  static const String caseReferences = "$baseUrl/case-references";
+  static const String caseReferenceCategories = "$baseUrl/case-references/categories";
+  static const String caseReferenceCourts = "$baseUrl/case-references/courts";
+  static String caseReferenceDownload(String idOrSlug) => "$baseUrl/case-references/$idOrSlug/download";
+
+  // Question Banks
+  static const String questionBanks = "$baseUrl/question-banks";
+  static const String questionBankPrograms = "$baseUrl/question-banks/programs";
+  static const String questionBankExams = "$baseUrl/question-banks/exams";
+  static const String questionBankSubjects = "$baseUrl/question-banks/subjects";
+  static String questionBankDownload(String id) => "$baseUrl/question-banks/$id/download";
 }

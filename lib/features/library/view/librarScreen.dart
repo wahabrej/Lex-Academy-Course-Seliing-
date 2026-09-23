@@ -6,6 +6,13 @@ import '../viewModel/flashcard_view_model.dart';
 import '../model/flashcard_model.dart';
 import '../viewModel/bare_acts_view_model.dart';
 import '../model/bare_acts_model.dart';
+import '../viewModel/legal_research_view_model.dart';
+import '../model/legal_research_model.dart';
+import '../viewModel/case_reference_view_model.dart';
+import '../model/case_reference_model.dart';
+import '../viewModel/question_bank_view_model.dart';
+import '../model/question_bank_model.dart';
+import '../../parentScreen/viewModel/parentScreenProvider.dart';
 
 // ─── Color Palette ──────────────────────────────────────────────────────────
 const Color _bg = Color(0xFFF5F7FA);
@@ -38,13 +45,7 @@ class SubjectCategory {
   final int count;
   final Color cardColor;
   final List<StudyItem> items;
-  const SubjectCategory({
-    required this.name, 
-    required this.description, 
-    required this.count, 
-    required this.cardColor, 
-    required this.items
-  });
+  const SubjectCategory({required this.name, required this.description, required this.count, required this.cardColor, required this.items});
 }
 
 // ─── Main Library Screen Entry ──────────────────────────────────────────────
@@ -55,30 +56,31 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  int _tab = 0;
-  final List<String> _tabs = ['Hub', 'Library', 'Flashcards', 'Bare Acts', 'Dictionary'];
-
-  void _switchToTab(int index) {
-    setState(() => _tab = index);
-  }
+  final List<String> _tabs = ['Hub', 'Library', 'Flashcards', 'QBank', 'Bare Acts', 'Research', 'Cases', 'Dictionary'];
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<ParentScreenProvider>();
+    final currentTab = provider.libraryTabIndex;
+
     return Scaffold(
       backgroundColor: _bg,
       body: SafeArea(
         child: Column(
           children: [
-            _buildAppBar(),
-            _buildTopTabs(),
+            _buildAppBar(_tabs[currentTab]),
+            _buildTopTabs(currentTab, provider),
             Expanded(
               child: IndexedStack(
-                index: _tab,
+                index: currentTab,
                 children: [
-                  _HubPage(onTabSwitch: _switchToTab),
+                  _HubPage(onTabSwitch: (idx) => provider.setLibraryTab(idx)),
                   const _LibraryPlaceholderPage(),
                   const _FlashcardsTabPage(),
+                  const _QuestionBankTabPage(),
                   const _BareActsTabPage(),
+                  const _LegalResearchTabPage(),
+                  const _CaseReferencesTabPage(),
                   const LegalDictionaryScreen(isTab: true),
                 ],
               ),
@@ -89,7 +91,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(String title) {
     return Container(
       color: _white,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -111,7 +113,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
           const SizedBox(width: 16),
           Text(
-            _tabs[_tab] == 'Hub' ? 'Study' : _tabs[_tab],
+            title == 'Hub' ? 'Study Hub' : title,
             style: const TextStyle(color: _textPrimary, fontSize: 20, fontWeight: FontWeight.w700),
           ),
         ],
@@ -119,7 +121,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _buildTopTabs() {
+  Widget _buildTopTabs(int currentTab, ParentScreenProvider provider) {
     return Container(
       color: _white,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -127,9 +129,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: _tabs.asMap().entries.map((e) {
-            final active = e.key == _tab;
+            final active = e.key == currentTab;
             return GestureDetector(
-              onTap: () => setState(() => _tab = e.key),
+              onTap: () => provider.setLibraryTab(e.key),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.only(right: 10),
@@ -166,7 +168,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
       case 0: return Icons.home_rounded;
       case 1: return Icons.local_library_rounded;
       case 2: return Icons.style_rounded;
-      case 3: return Icons.gavel_rounded;
+      case 3: return Icons.quiz_rounded;
+      case 4: return Icons.gavel_rounded;
+      case 5: return Icons.border_inner_outlined;
+      case 6: return Icons.account_balance_rounded;
       default: return Icons.menu_book_outlined;
     }
   }
@@ -187,14 +192,14 @@ class _HubPage extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
             decoration: const BoxDecoration(color: _navy),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Study Materials', style: TextStyle(color: _white, fontSize: 24, fontWeight: FontWeight.w800)),
-                SizedBox(height: 8),
-                Text('Your single hub for reading, practising and reference –\nacross BJS, BAR and LL.B.', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13, height: 1.5)),
-                SizedBox(height: 20),
-                _SearchFieldPlaceholder(hint: 'Search materials, decks, acts...', light: false),
+                const Text('Study Materials', style: TextStyle(color: _white, fontSize: 24, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                const Text('Your single hub for reading, practising and reference –\nacross BJS, BAR and LL.B.', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13, height: 1.5)),
+                const SizedBox(height: 20),
+                const _SearchFieldPlaceholder(hint: 'Search materials, decks, acts...', light: false),
               ],
             ),
           ),
@@ -208,11 +213,17 @@ class _HubPage extends StatelessWidget {
           const SizedBox(height: 24),
           _buildSectionHeader('Practice', '2'),
           _HubCard(icon: Icons.style_rounded, iconBg: const Color(0xFF9B59B6), title: 'Flashcards', subtitle: 'Active recall decks for quick revision.', badge: 'Active', onTap: () => onTabSwitch(2)),
+          const SizedBox(height: 12),
+          _HubCard(icon: Icons.quiz_rounded, iconBg: _gold, title: 'Question Bank', subtitle: 'BJS / BAR past papers & subject sets.', badge: 'Active', onTap: () => onTabSwitch(3)),
           const SizedBox(height: 24),
           _buildSectionHeader('Reference', '4'),
-          _HubCard(icon: Icons.gavel_rounded, iconBg: _navyLight, title: 'Bare Acts', subtitle: 'Searchable statutes with explanations.', onTap: () => onTabSwitch(3)),
+          _HubCard(icon: Icons.gavel_rounded, iconBg: _navyLight, title: 'Bare Acts', subtitle: 'Searchable statutes with explanations.', onTap: () => onTabSwitch(4)),
           const SizedBox(height: 12),
-          _HubCard(icon: Icons.menu_book_outlined, iconBg: _navyLight, title: 'Legal Dictionary', subtitle: 'Bilingual EN/BN legal terminology.', badge: 'Active', onTap: () => onTabSwitch(4)),
+          _HubCard(icon: Icons.border_inner, iconBg: _navyLight, title: 'Legal Research', subtitle: 'Articles, papers and analyses.', onTap: () => onTabSwitch(5)),
+          const SizedBox(height: 12),
+          _HubCard(icon: Icons.account_balance_rounded, iconBg: _navyLight, title: 'Case References', subtitle: 'Landmark judgments & summaries.', badge: 'Active', onTap: () => onTabSwitch(6)),
+          const SizedBox(height: 12),
+          _HubCard(icon: Icons.menu_book_outlined, iconBg: _navyLight, title: 'Legal Dictionary', subtitle: 'Bilingual EN/BN legal terminology.', badge: 'Active', onTap: () => onTabSwitch(7)),
           const SizedBox(height: 30),
         ],
       ),
@@ -339,10 +350,7 @@ class _FlashcardsTabPageState extends State<_FlashcardsTabPage> {
                           borderRadius: BorderRadius.circular(16),
                           clipBehavior: Clip.antiAlias,
                           child: InkWell(
-                            onTap: () {
-                              debugPrint("Deck clicked: ${deck.title}");
-                              _startSession(context, deck);
-                            },
+                            onTap: () => _startSession(context, deck),
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Row(
@@ -390,13 +398,256 @@ class _FlashcardsTabPageState extends State<_FlashcardsTabPage> {
 
     bool success = await vm.fetchDeckDetail(deck.id);
     
+    if (!context.mounted) return;
     navigator.pop(); // Close dialog
 
     if (success && vm.selectedDeck != null && vm.selectedDeck!.flashcards.isNotEmpty) {
-      navigator.push(MaterialPageRoute(builder: (_) => _FlashcardViewerScreen(deck: vm.selectedDeck!)));
+      Navigator.push(context, MaterialPageRoute(builder: (_) => _FlashcardViewerScreen(deck: vm.selectedDeck!)));
     } else {
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text(vm.errorMessage ?? 'This deck has no cards.')),
+      );
+    }
+  }
+}
+
+// ─── Question Bank Tab Content ───────────────────────────────────────────────
+class _QuestionBankTabPage extends StatefulWidget {
+  const _QuestionBankTabPage();
+  @override
+  State<_QuestionBankTabPage> createState() => _QuestionBankTabPageState();
+}
+
+class _QuestionBankTabPageState extends State<_QuestionBankTabPage> {
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vm = context.read<QuestionBankViewModel>();
+      vm.fetchFilterData();
+      vm.fetchQuestionBanks(isRefresh: true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<QuestionBankViewModel>();
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          color: _white,
+          child: Column(
+            children: [
+              Container(
+                height: 44,
+                decoration: BoxDecoration(color: _tabBg, borderRadius: BorderRadius.circular(12)),
+                child: TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) {
+                    vm.updateFilters(search: v);
+                    vm.fetchQuestionBanks(isRefresh: true);
+                  },
+                  decoration: const InputDecoration(
+                    hintText: 'Search title, subject, or year...',
+                    hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
+                    prefixIcon: Icon(Icons.search, color: _textSecondary, size: 20),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              if (vm.programs.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 36,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: vm.programs.length + 1,
+                    itemBuilder: (context, index) {
+                      final isAll = index == 0;
+                      final prog = isAll ? 'All' : vm.programs[index - 1];
+                      final active = isAll ? vm.selectedProgram.isEmpty : vm.selectedProgram == prog;
+                      return GestureDetector(
+                        onTap: () {
+                          vm.updateFilters(program: isAll ? '' : prog);
+                          vm.fetchQuestionBanks(isRefresh: true);
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          decoration: BoxDecoration(
+                            color: active ? _gold : _white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: active ? _gold : _cardBorder),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(prog, style: TextStyle(color: active ? _navy : _textSecondary, fontSize: 12, fontWeight: active ? FontWeight.bold : FontWeight.w500)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ]
+            ],
+          ),
+        ),
+
+        Expanded(
+          child: vm.isLoading 
+              ? const Center(child: CircularProgressIndicator(color: _navy))
+              : vm.items.isEmpty 
+                  ? const Center(child: Text('No question banks found.'))
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: vm.items.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, i) {
+                        final item = vm.items[i];
+                        return _buildBankCard(context, item);
+                      },
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBankCard(BuildContext context, QuestionBank item) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _white, 
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _cardBorder),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: _navy.withOpacity(0.05), borderRadius: BorderRadius.circular(6)),
+                child: Text("${item.programType} - ${item.examType}", style: const TextStyle(color: _navy, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+              const Spacer(),
+              if (item.tier == 'premium')
+                const Icon(Icons.workspace_premium, color: _gold, size: 18)
+              else
+                const Text("FREE", style: TextStyle(color: _teal, fontSize: 10, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(item.title, style: const TextStyle(color: _textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 6),
+          Text(item.subject, style: const TextStyle(color: _textSecondary, fontSize: 13)),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Year: ${item.year}", style: const TextStyle(color: _textPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
+              ElevatedButton(
+                onPressed: () => _viewBankDetails(context, item),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: item.isUnlocked ? _teal : _navy, 
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+                child: Text(
+                  item.isUnlocked ? 'Open Bank' : 'Unlock Now', 
+                  style: const TextStyle(color: _white, fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  void _viewBankDetails(BuildContext context, QuestionBank item) async {
+    final vm = context.read<QuestionBankViewModel>();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator(color: _navy)),
+    );
+
+    bool success = await vm.fetchBankDetail(item.id);
+    if (!context.mounted) return;
+    Navigator.pop(context);
+
+    if (success && vm.selectedBank != null) {
+      final b = vm.selectedBank!;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: const BoxDecoration(color: _white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(b.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _navy)),
+                        Text(b.subject, style: const TextStyle(fontSize: 13, color: _textSecondary)),
+                      ],
+                    ),
+                  ),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+              const Divider(height: 32),
+              const Text("Description", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _textPrimary)),
+              const SizedBox(height: 8),
+              Text(b.description, style: const TextStyle(fontSize: 14, color: _textSecondary, height: 1.6)),
+              const Spacer(),
+              if (!b.isUnlocked && b.associatedPackages.isNotEmpty) ...[
+                const Text("Associated Packages", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _textPrimary)),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: b.associatedPackages.length,
+                    itemBuilder: (context, index) {
+                      final pkg = b.associatedPackages[index];
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(pkg.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        trailing: Text("৳${pkg.discountPrice}", style: const TextStyle(color: _gold, fontWeight: FontWeight.bold)),
+                      );
+                    },
+                  ),
+                ),
+              ],
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(backgroundColor: b.isUnlocked ? _teal : _gold, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  child: Text(
+                    b.isUnlocked ? "Continue to Questions" : "Buy Now", 
+                    style: const TextStyle(color: _navy, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
       );
     }
   }
@@ -617,7 +868,476 @@ class _BareActsTabPageState extends State<_BareActsTabPage> {
   }
 }
 
-// ─── Flashcard Viewer Screen ─────────────────────────────────────────────────
+// ─── Legal Research Tab Content ──────────────────────────────────────────────
+class _LegalResearchTabPage extends StatefulWidget {
+  const _LegalResearchTabPage();
+  @override
+  State<_LegalResearchTabPage> createState() => _LegalResearchTabPageState();
+}
+
+class _LegalResearchTabPageState extends State<_LegalResearchTabPage> {
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vm = context.read<LegalResearchViewModel>();
+      vm.fetchResearchPapers(isRefresh: true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<LegalResearchViewModel>();
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          color: _white,
+          child: Container(
+            height: 44,
+            decoration: BoxDecoration(color: _tabBg, borderRadius: BorderRadius.circular(12)),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: (v) {
+                vm.updateFilters(search: v);
+                vm.fetchResearchPapers(isRefresh: true);
+              },
+              decoration: const InputDecoration(
+                hintText: 'Search research papers...',
+                hintStyle: TextStyle(color: _textSecondary, fontSize: 14),
+                prefixIcon: Icon(Icons.search, color: _textSecondary, size: 20),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ),
+
+        Expanded(
+          child: vm.isLoading 
+              ? const Center(child: CircularProgressIndicator(color: _navy))
+              : vm.papers.isEmpty 
+                  ? const Center(child: Text('No research papers found.'))
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: vm.papers.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, i) {
+                        final paper = vm.papers[i];
+                        return GestureDetector(
+                          onTap: () => _viewPaperDetails(context, paper),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: _white, 
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: _cardBorder),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        paper.title, 
+                                        style: const TextStyle(color: _textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: _textSecondary),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  "By ${paper.author}", 
+                                  style: const TextStyle(color: _teal, fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  paper.abstract, 
+                                  maxLines: 3, 
+                                  overflow: TextOverflow.ellipsis, 
+                                  style: const TextStyle(color: _textSecondary, fontSize: 13, height: 1.5),
+                                ),
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 8,
+                                  children: paper.tags.map((tag) => Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(color: _tabBg, borderRadius: BorderRadius.circular(6)),
+                                    child: Text(tag, style: const TextStyle(color: _textSecondary, fontSize: 10)),
+                                  )).toList(),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+        ),
+      ],
+    );
+  }
+
+  void _viewPaperDetails(BuildContext context, LegalResearchPaper paper) async {
+    final vm = context.read<LegalResearchViewModel>();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator(color: _navy)),
+    );
+
+    bool success = await vm.fetchPaperDetail(paper.id);
+    if (!context.mounted) return;
+    Navigator.pop(context);
+
+    if (success && vm.selectedPaper != null) {
+      final p = vm.selectedPaper!;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          decoration: const BoxDecoration(color: _white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(p.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _navy)),
+                        const SizedBox(height: 4),
+                        Text("Author: ${p.author}", style: const TextStyle(fontSize: 13, color: _teal, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+              const Divider(height: 32),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Abstract", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _textPrimary)),
+                      const SizedBox(height: 8),
+                      Text(p.abstract, style: const TextStyle(fontSize: 14, color: _textSecondary, height: 1.6)),
+                      const SizedBox(height: 24),
+                      const Text("Full Paper Content", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _textPrimary)),
+                      const SizedBox(height: 12),
+                      Text(p.bodyMd, style: const TextStyle(fontSize: 14, color: _textPrimary, height: 1.6)),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+              if (p.pdfUrl != null && p.pdfUrl!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final url = Uri.parse(p.pdfUrl!);
+                        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                          debugPrint("Could not launch $url");
+                        }
+                      },
+                      icon: const Icon(Icons.picture_as_pdf, color: _white),
+                      label: const Text("Download PDF Paper", style: TextStyle(color: _white, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(backgroundColor: _navy, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    ),
+                  ),
+                )
+            ],
+          ),
+        ),
+      );
+    }
+  }
+}
+
+// ─── Case References Tab Content ───────────────────────────────────────
+class _CaseReferencesTabPage extends StatefulWidget {
+  const _CaseReferencesTabPage();
+  @override
+  State<_CaseReferencesTabPage> createState() => _CaseReferencesTabPageState();
+}
+
+class _CaseReferencesTabPageState extends State<_CaseReferencesTabPage> {
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vm = context.read<CaseReferenceViewModel>();
+      vm.fetchCategories();
+      vm.fetchCourts();
+      vm.fetchCaseReferences(isRefresh: true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<CaseReferenceViewModel>();
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          color: _white,
+          child: Container(
+            height: 44,
+            decoration: BoxDecoration(color: _tabBg, borderRadius: BorderRadius.circular(12)),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: (v) {
+                vm.updateFilters(search: v);
+                vm.fetchCaseReferences(isRefresh: true);
+              },
+              decoration: const InputDecoration(
+                hintText: 'Search cases, citation, court...',
+                hintStyle: TextStyle(color: _textSecondary, fontSize: 14),
+                prefixIcon: Icon(Icons.search, color: _textSecondary, size: 20),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ),
+
+        if (vm.categories.isNotEmpty)
+          Container(
+            height: 48,
+            color: _white,
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: vm.categories.length + 1,
+              itemBuilder: (context, index) {
+                final isAll = index == 0;
+                final cat = isAll ? 'All Categories' : vm.categories[index - 1];
+                final active = isAll ? vm.selectedCategory.isEmpty : vm.selectedCategory == cat;
+                return GestureDetector(
+                  onTap: () {
+                    vm.updateFilters(category: isAll ? '' : cat);
+                    vm.fetchCaseReferences(isRefresh: true);
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    decoration: BoxDecoration(
+                      color: active ? _navy : _white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: active ? _navy : _cardBorder),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      cat,
+                      style: TextStyle(color: active ? _white : _textSecondary, fontSize: 13, fontWeight: active ? FontWeight.bold : FontWeight.w500),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+        Expanded(
+          child: vm.isLoading 
+              ? const Center(child: CircularProgressIndicator(color: _navy))
+              : vm.items.isEmpty 
+                  ? const Center(child: Text('No case references found.'))
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: vm.items.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, i) {
+                        final item = vm.items[i];
+                        return GestureDetector(
+                          onTap: () => _viewCaseDetails(context, item),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: _white, 
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: _cardBorder),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(color: _goldLight, borderRadius: BorderRadius.circular(6)),
+                                      child: Text(item.category, style: const TextStyle(color: _gold, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ),
+                                    const Spacer(),
+                                    Text("${item.year}", style: const TextStyle(color: _textSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  item.title, 
+                                  style: const TextStyle(color: _textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  item.citation, 
+                                  style: const TextStyle(color: _teal, fontSize: 13, fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  item.summary, 
+                                  maxLines: 2, 
+                                  overflow: TextOverflow.ellipsis, 
+                                  style: const TextStyle(color: _textSecondary, fontSize: 13, height: 1.5),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.account_balance, size: 14, color: _textSecondary),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        item.court, 
+                                        style: const TextStyle(color: _textSecondary, fontSize: 12),
+                                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+        ),
+      ],
+    );
+  }
+
+  void _viewCaseDetails(BuildContext context, CaseReference item) async {
+    final vm = context.read<CaseReferenceViewModel>();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator(color: _navy)),
+    );
+
+    bool success = await vm.fetchCaseDetail(item.id);
+    if (!context.mounted) return;
+    Navigator.pop(context);
+
+    if (success && vm.selectedCase != null) {
+      final c = vm.selectedCase!;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          decoration: const BoxDecoration(color: _white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(c.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _navy)),
+                        const SizedBox(height: 4),
+                        Text(c.citation, style: const TextStyle(fontSize: 13, color: _teal, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+              const Divider(height: 32),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildDetailRow("Court", c.court),
+                      _buildDetailRow("Year", "${c.year}"),
+                      _buildDetailRow("Category", c.category),
+                      const SizedBox(height: 20),
+                      const Text("Summary", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _textPrimary)),
+                      const SizedBox(height: 8),
+                      Text(c.summary, style: const TextStyle(fontSize: 14, color: _textSecondary, height: 1.6)),
+                      const SizedBox(height: 24),
+                      if (c.contentPlain != null) ...[
+                        const Text("Judgment Content", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _textPrimary)),
+                        const SizedBox(height: 12),
+                        Text(c.contentPlain!, style: const TextStyle(fontSize: 14, color: _textPrimary, height: 1.6)),
+                      ],
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+              if (c.pdfUrl != null && c.pdfUrl!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final url = Uri.parse(c.pdfUrl!);
+                        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                          debugPrint("Could not launch $url");
+                        }
+                      },
+                      icon: const Icon(Icons.file_download, color: _white),
+                      label: const Text("Download Full Judgment", style: TextStyle(color: _white, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(backgroundColor: _navy, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    ),
+                  ),
+                )
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Text("$label: ", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: _textSecondary)),
+          Text(value, style: const TextStyle(fontSize: 13, color: _textPrimary)),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Flashcard Viewer Screen (Interactive) ───────────────────────────────────
 class _FlashcardViewerScreen extends StatefulWidget {
   final FlashcardDeck deck;
   const _FlashcardViewerScreen({required this.deck});
