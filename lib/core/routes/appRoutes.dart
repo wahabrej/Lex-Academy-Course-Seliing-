@@ -20,11 +20,13 @@ import '../../features/AllPackages/view/syllabus_screen.dart';
 import '../../features/auth/ReadyToGo/view/ReadyToGoScreen.dart';
 import '../../features/auth/login/view/loginScreen.dart';
 import '../../features/auth/signup/view/signUpScreen.dart';
+import '../../features/auth/signup/view/signUpStepTwoScreen.dart';
 import '../../features/home/view/allPackageDetailScreen.dart';
 import '../../features/home/view/allPackageScreen.dart' as home;
 import '../../features/home/view/packageDetailScreen.dart' as home_detail;
 import '../../features/home/view/packageRoutingScreen.dart' as home_routing;
 import '../../features/splash/onboardingScreen.dart';
+import '../../features/library/view/legal_dictionary_screen.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
@@ -36,6 +38,7 @@ class AppRoutes {
     RouteName.allPackageGridScreen: (context) => const home.AllPackageScreen(),
     RouteName.loginScreen: (context) => const LoginScreen(),
     RouteName.signUpScreen: (context) => const SignUpScreen(),
+    RouteName.signUpStepTwoScreen: (context) => const SignUpStepTwoScreen(),
     RouteName.readyToGoScreen: (context) => const ReadyToGoScreen(),
     RouteName.onboardingScreen: (context) => const OnboardingScreen(),
     RouteName.packageScreen: (context) => const PackageScreen(),
@@ -49,5 +52,6 @@ class AppRoutes {
     RouteName.dashboardScreen: (context) => const DashboardScreen(),
     RouteName.suggestionScreen: (context) => const SuggestionScreen(),
     RouteName.bookReferenceScreen: (context) => const BookReferenceScreen(),
+    RouteName.legalDictionaryScreen: (context) => const LegalDictionaryScreen(),
   };
 }

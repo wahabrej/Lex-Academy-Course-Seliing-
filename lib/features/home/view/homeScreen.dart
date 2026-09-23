@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lexverse/core/routes/routesName.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/routes/routesName.dart';
+import '../../parentScreen/viewModel/parentScreenProvider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -11,92 +13,80 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ========== 1. TOP BAR / HEADER ==========
-              _buildHeader(),
-              SizedBox(height: 20.h),
-
-              // ========== 2. HERO CARD (BJS Program) ==========
-              _buildBJSProgramCard(context),
-              SizedBox(height: 16.h),
-
-              // ========== 3. TWO COLUMN CARDS (BAR Programs) ==========
+              _buildTopHeader(),
+              SizedBox(height: 24.h),
+              _buildBjsProgramCard(context),
+              SizedBox(height: 24.h),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: _buildBarProgramCard(
-                      title: 'BAR Program',
-                      subtitle: 'Pass the Bar Council enrolment exam',
-                      examCount: '40 exams now',
-                      dateText: '24/08/2026',
+                  Text(
+                    'Explore Programs',
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F2C43),
                     ),
                   ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: _buildBarProgramCard(
-                      title: 'BAR Program',
-                      subtitle: 'BAR Program Pass the Bar Council enrolment exam',
-                      examCount: '40 exams now',
-                      dateText: 'Not scheduled',
+                  Text(
+                    'View all',
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: const Color(0xFF0F2C43),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 28.h),
-
-              // ========== 4. EXPLORE EVERYTHING SECTION ==========
+              SizedBox(height: 16.h),
+              _buildBarProgramCard(
+                title: 'BAR Program',
+                subtitle: 'Prepare for Bangladesh Bar Council Enrollment exam',
+                examCount: '15 exams now',
+                dateText: 'Next: 12 Oct 2026',
+              ),
+              SizedBox(height: 24.h),
               Text(
-                'Explore everything',
+                'Top Study Notes',
                 style: TextStyle(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF0F2C43),
                 ),
               ),
-              SizedBox(height: 4.h),
-              Text(
-                'Access all study resources, practice hubs and learning tools',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: Colors.grey[600],
-                ),
-              ),
               SizedBox(height: 16.h),
-
-              // Horizontal Scroll Cards
               SizedBox(
                 height: 160.h,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
                     _buildExploreCard(
-                      title: 'World History',
-                      subtitle: 'BJS & BAR Pdf',
+                      title: 'Constitutional Law',
+                      subtitle: 'Basic Structure Doctrine & Judgments',
                       isDark: true,
                     ),
                     SizedBox(width: 12.w),
                     _buildExploreCard(
-                      title: 'Question Bank',
-                      subtitle: 'BJS, BAR & BCS Exam Questions',
+                      title: 'Penal Code 1860',
+                      subtitle: 'General Exceptions & Punishment',
                       isDark: false,
                     ),
                     SizedBox(width: 12.w),
                     _buildExploreCard(
-                      title: 'All Notes',
-                      subtitle: 'All BJS PDF Notes',
+                      title: 'Evidence Act',
+                      subtitle: 'Burden of Proof & Estoppel',
                       isDark: false,
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 28.h),
-
-              // ========== 5. MORE TOOLS & RESOURCES SECTION ==========
-              _buildMoreToolsSection(),
-              SizedBox(height: 30.h),
+              SizedBox(height: 24.h),
+              _buildMoreToolsSection(context),
+              SizedBox(height: 40.h),
             ],
           ),
         ),
@@ -105,65 +95,69 @@ class HomeScreen extends StatelessWidget {
   }
 
   // 1. Header Widget
-  Widget _buildHeader() {
+  Widget _buildTopHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
-            Image.asset(
-              'assets/icons/login_logo.png',
-              width: 180.w,
-              height: 32.h,
-              errorBuilder: (context, error, stackTrace) => Icon(
-                Icons.balance,
-                color: const Color(0xFFFFC107),
-                size: 30.r,
+            Container(
+              width: 44.r,
+              height: 44.r,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF4F5F7),
+                borderRadius: BorderRadius.circular(12.r),
               ),
+              child: Icon(Icons.person, color: const Color(0xFF0F2C43), size: 24.r),
             ),
-
+            SizedBox(width: 12.w),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hello,',
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+                ),
+                Text(
+                  'Lex Learner',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F2C43),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        Stack(
-          children: [
-            Container(
-              padding: EdgeInsets.all(10.r),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(14.r),
-              ),
-              child: Icon(
-                Icons.notifications_none_outlined,
-                color: Colors.black,
-                size: 22.r,
-              ),
-            ),
-            Positioned(
-              right: 10.w,
-              top: 10.h,
-              child: Container(
-                width: 7.r,
-                height: 7.r,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
+        Container(
+          width: 44.r,
+          height: 44.r,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF4F5F7),
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Icon(Icons.notifications_outlined, color: const Color(0xFF0F2C43), size: 24.r),
         ),
       ],
     );
   }
 
-  // 2. Hero Card Widget (BJS Program)
-  Widget _buildBJSProgramCard(BuildContext context) {
+  // 2. BJS Program Card Widget
+  Widget _buildBjsProgramCard(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B253A),
-        borderRadius: BorderRadius.circular(20.r),
+        color: const Color(0xFF0F2C43),
+        borderRadius: BorderRadius.circular(24.r),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F2C43).withValues(alpha: 0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,43 +173,20 @@ class HomeScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Row(
-                children: [
-                  Icon(Icons.shield, color: const Color(0xFFFFC107), size: 16.r),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'Premium',
-                    style: TextStyle(
-                      color: const Color(0xFFFFC107),
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+              Icon(Icons.shield, color: const Color(0xFFFFC107), size: 20.r),
             ],
           ),
-          SizedBox(height: 6.h),
-          Row(
-            children: [
-              Icon(Icons.access_time, color: Colors.white70, size: 14.r),
-              SizedBox(width: 6.w),
-              Expanded(
-                child: Text(
-                  'Crack the Bangladesh Judicial Service exam',
-                  style: TextStyle(color: Colors.white70, fontSize: 12.sp),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          SizedBox(height: 8.h),
+          Text(
+            'Master Bangladesh Judicial Service with our focused curriculum and mock exams.',
+            style: TextStyle(color: Colors.white70, fontSize: 11.sp, height: 1.4),
           ),
-          SizedBox(height: 14.h),
+          SizedBox(height: 18.h),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(14.r),
             ),
             child: Row(
               children: [
@@ -444,7 +415,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   // 5. More Tools & Resources Section Widget
-  Widget _buildMoreToolsSection() {
+  Widget _buildMoreToolsSection(BuildContext context) {
     final List<Map<String, dynamic>> toolsList = [
       {
         'title': 'Case References',
@@ -452,6 +423,7 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.menu_book_rounded,
         'iconBgColor': const Color(0xFFE8F5E9),
         'iconColor': const Color(0xFF2E7D32),
+        'tabIndex': 5,
       },
       {
         'title': 'Legal Research',
@@ -459,6 +431,7 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.search_rounded,
         'iconBgColor': const Color(0xFFE0F7FA),
         'iconColor': const Color(0xFF00838F),
+        'tabIndex': 4,
       },
       {
         'title': 'Flashcards',
@@ -466,6 +439,7 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.style_rounded,
         'iconBgColor': const Color(0xFFFFF3E0),
         'iconColor': const Color(0xFFE65100),
+        'tabIndex': 2,
       },
       {
         'title': 'Legal Dictionary',
@@ -473,6 +447,7 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.import_contacts_rounded,
         'iconBgColor': const Color(0xFFF3E5F5),
         'iconColor': const Color(0xFF6A1B9A),
+        'tabIndex': 6,
       },
       {
         'title': 'Books',
@@ -480,6 +455,7 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.article_rounded,
         'iconBgColor': const Color(0xFFE8F5E9),
         'iconColor': const Color(0xFF2E7D32),
+        'tabIndex': 1,
       },
       {
         'title': 'Articles',
@@ -487,6 +463,7 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.assignment_rounded,
         'iconBgColor': const Color(0xFFFBE9E7),
         'iconColor': const Color(0xFFD84315),
+        'tabIndex': 1,
       },
       {
         'title': 'Courses',
@@ -494,6 +471,7 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.school_rounded,
         'iconBgColor': const Color(0xFFFFEBEE),
         'iconColor': const Color(0xFFC62828),
+        'tabIndex': 0,
       },
     ];
 
@@ -522,7 +500,11 @@ class HomeScreen extends StatelessWidget {
               icon: tool['icon'],
               iconBgColor: tool['iconBgColor'],
               iconColor: tool['iconColor'],
-              onTap: () {},
+              onTap: () {
+                if (tool['tabIndex'] != null) {
+                  context.read<ParentScreenProvider>().setLibraryTab(tool['tabIndex']);
+                }
+              },
             );
           },
         ),

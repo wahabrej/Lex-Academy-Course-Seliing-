@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
 import 'package:lexverse/core/routes/routesName.dart';
+import '../../core/constant/TokenStorage.dart';
 
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
@@ -11,14 +12,24 @@ class Splashscreen extends StatefulWidget {
 }
 
 class _SplashscreenState extends State<Splashscreen> {
+  final AppStorage _storage = AppStorage();
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, RouteName.onboardingScreen);
-      }
-    });
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    final bool loggedIn = await _storage.isLoggedIn();
+    if (loggedIn) {
+      Navigator.pushReplacementNamed(context, RouteName.parentScreen);
+    } else {
+      Navigator.pushReplacementNamed(context, RouteName.onboardingScreen);
+    }
   }
 
   @override

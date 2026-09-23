@@ -1,7 +1,9 @@
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/routes/routesName.dart';
+import '../viewmodel/signupViewModel.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -27,6 +29,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _passwordController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  void _handleContinue() {
+    final name = _fullNameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty || phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    context.read<SignupViewModel>().setStep1Data(
+          name: name,
+          email: email,
+          password: password,
+          phone: '$_selectedCountryCode$phone',
+        );
+
+    Navigator.pushNamed(context, RouteName.signUpStepTwoScreen);
   }
 
   @override
@@ -69,7 +94,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ],
               ),
               SizedBox(height: 24.h),
-
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
@@ -80,7 +104,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title & Subtitle
                     Center(
                       child: Text(
                         'Create an account',
@@ -104,8 +127,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     SizedBox(height: 20.h),
-
-                    // Full Name Field
                     _buildLabel('Full Name'),
                     SizedBox(height: 6.h),
                     _buildTextField(
@@ -113,8 +134,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       hintText: 'Enter your full name',
                     ),
                     SizedBox(height: 14.h),
-
-                    // Email Field
                     _buildLabel('Email'),
                     SizedBox(height: 6.h),
                     _buildTextField(
@@ -123,8 +142,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       keyboardType: TextInputType.emailAddress,
                     ),
                     SizedBox(height: 14.h),
-
-                    // Password Field
                     _buildLabel('Password'),
                     SizedBox(height: 6.h),
                     _buildTextField(
@@ -147,10 +164,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     SizedBox(height: 14.h),
-
-                    // =========================================================
-                    // 3. Phone Number Field with Country Code Picker (Dropdown)
-                    // =========================================================
                     _buildLabel('Phone Number'),
                     SizedBox(height: 6.h),
                     Container(
@@ -160,31 +173,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       child: Row(
                         children: [
-                          // --- Country Code Picker Widget ---
                           CountryCodePicker(
                             onChanged: (CountryCode countryCode) {
                               setState(() {
                                 _selectedCountryCode = countryCode.dialCode!;
-                                // এখানে আপনি চাইলে selected country code ও manipulate করতে পারেন
-                                // print("New Country selected: ${countryCode.dialCode}");
                               });
                             },
-                            // প্রাথমিক সিলেকশন (Bangladesh)
                             initialSelection: 'BD',
-                            // ফেভারিট লিস্টে বাংলাদেশ ও ভারত রাখা (চাইলে পরিবর্তন করতে পারেন)
                             favorite: const ['+880', 'BD', '+91', 'IN'],
-                            // শুধুমাত্র ডায়াল কোড দেখাবে যখন ক্লোজ থাকবে
                             showOnlyCountryWhenClosed: false,
-                            // ফ্ল্যাগ এবং টেক্সট লেফটে অ্যালাইন করা
                             alignLeft: false,
                             padding: EdgeInsets.zero,
-                            // ডায়াল কোড এবং ফ্ল্যাগ এর স্টাইল
                             textStyle: TextStyle(
                               fontSize: 13.sp,
                               fontWeight: FontWeight.w500,
                               color: Colors.black87,
                             ),
-                            // সার্চ ডায়ালগের কাস্টমাইজেশন
                             searchDecoration: InputDecoration(
                               hintText: 'Search country...',
                               prefixIcon: const Icon(Icons.search),
@@ -192,19 +196,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 borderRadius: BorderRadius.circular(10.r),
                               ),
                             ),
-                            // ফ্ল্যাগ এর প্রস্থ
                             flagWidth: 24.w,
                           ),
-
-                          // ভাটিক্যাল ডিভাইডার (ঐচ্ছিক, স্ক্রিনশটের সাথে মিলিয়ে)
                           Container(
                             height: 24.h,
                             width: 1.w,
                             color: Colors.grey[300],
                           ),
                           SizedBox(width: 8.w),
-
-                          // --- Phone Number Input Field ---
                           Expanded(
                             child: TextField(
                               controller: _phoneController,
@@ -230,8 +229,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     SizedBox(height: 12.h),
-
-                    // Remember Me & Forgot Password
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -282,15 +279,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ],
                     ),
                     SizedBox(height: 20.h),
-
-                    // Continue Button
                     SizedBox(
                       width: double.infinity,
                       height: 46.h,
                       child: ElevatedButton(
-                        onPressed: () {
-                Navigator.pushNamed(context, RouteName.readyToGoScreen);
-                        },
+                        onPressed: _handleContinue,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFFC107),
                           elevation: 0,
@@ -309,8 +302,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-
-                    // Step Indicator (1/2)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -333,8 +324,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ],
                     ),
                     SizedBox(height: 16.h),
-
-                    // Or Sign in with
                     Center(
                       child: Text(
                         'Or Sign in with',
@@ -345,29 +334,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     SizedBox(height: 14.h),
-
-                    // Social Buttons Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildSocialButton(
                           iconPath: "assets/icons/fb.png",
-                          fallbackIcon: Icons.facebook,
                           iconColor: const Color(0xFF1877F2),
                           onTap: () {},
                         ),
                         SizedBox(width: 16.w),
                         _buildSocialButton(
                           iconPath: "assets/icons/google.png",
-                          fallbackIcon: Icons.g_mobiledata_rounded,
                           iconColor: Colors.redAccent,
                           onTap: () {},
                         ),
                       ],
                     ),
                     SizedBox(height: 20.h),
-
-                    // Sign In / Sign Up Nav
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -407,7 +390,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Label Helper
   Widget _buildLabel(String text) {
     return Text(
       text,
@@ -419,7 +401,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Input Field Helper
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
@@ -451,10 +432,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Social Button Helper Component
   Widget _buildSocialButton({
     required String iconPath,
-    required IconData fallbackIcon,
     required Color iconColor,
     required VoidCallback onTap,
   }) {
@@ -472,8 +451,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: Image.asset(
           iconPath,
           fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) =>
-              Icon(fallbackIcon, color: iconColor, size: 24.r),
         ),
       ),
     );
