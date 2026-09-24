@@ -1,86 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lexverse/core/routes/routesName.dart';
 
-class AllPackageGridScreen extends StatelessWidget {
-  final String packageId;
-  final String packageName;
+class EnrolledPackageDashboardScreen extends StatelessWidget {
+  final String? packageName;
 
-  const AllPackageGridScreen({
+  const EnrolledPackageDashboardScreen({
     super.key,
-    required this.packageId,
-    required this.packageName,
+    this.packageName,
   });
 
   @override
   Widget build(BuildContext context) {
-    // আপনার ডকুমেন্ট অনুযায়ী ১০টি মডিউল
+    // ১০টি প্রধান মডিউল ম্যাপিং
     final List<Map<String, dynamic>> modules = [
       {
         'title': 'Exams',
         'subtitle': 'Live, Archived & Past',
         'icon': Icons.assignment_rounded,
-        'color': Colors.blue,
+        'color': const Color(0xFFE53935),
+        'route': RouteName.liveExamScreen,
       },
       {
         'title': 'Results',
         'subtitle': 'Merit List & Breakdown',
         'icon': Icons.emoji_events_rounded,
-        'color': Colors.orange,
+        'color': const Color(0xFFFFB300),
+        'route': RouteName.resultScreen,
       },
       {
         'title': 'Routine',
         'subtitle': 'Class & Exam Schedule',
         'icon': Icons.calendar_month_rounded,
-        'color': Colors.indigo,
+        'color': const Color(0xFF3F51B5),
+        'route': RouteName.routineScreen,
       },
       {
         'title': 'Syllabus',
         'subtitle': 'Package Curriculum',
         'icon': Icons.menu_book_rounded,
-        'color': Colors.teal,
+        'color': const Color(0xFF00897B),
+        'route': RouteName.syllabusScreen,
       },
       {
         'title': 'Notes',
         'subtitle': 'Lecture & Study Notes',
         'icon': Icons.description_rounded,
-        'color': Colors.purple,
+        'color': const Color(0xFF2E7D32),
+        'route': RouteName.notesScreen,
       },
       {
-        'title': 'Q-Banks',
+        'title': 'Question Banks',
         'subtitle': 'Past Paper Collections',
         'icon': Icons.quiz_rounded,
-        'color': Colors.deepOrange,
+        'color': const Color(0xFF8E24AA),
+        'route': RouteName.questionBanks,
       },
       {
         'title': 'References',
         'subtitle': 'Standard Book List',
         'icon': Icons.library_books_rounded,
-        'color': Colors.brown,
+        'color': const Color(0xFFD81B60),
+        'route': RouteName.bookReferenceScreen,
       },
       {
         'title': 'Suggestions',
         'subtitle': 'Subject-wise Tips',
         'icon': Icons.tips_and_updates_rounded,
-        'color': Colors.amber,
+        'color': const Color(0xFFFB8C00),
+        'route': RouteName.suggestionScreen,
       },
       {
         'title': 'Announcements',
         'subtitle': 'Latest Notices',
         'icon': Icons.campaign_rounded,
-        'color': Colors.red,
+        'color': const Color(0xFF00ACC1),
+        'route': RouteName.noticeScreen,
       },
       {
         'title': 'Performance',
         'subtitle': 'Your Progress Analytics',
         'icon': Icons.bar_chart_rounded,
-        'color': Colors.green,
+        'color': const Color(0xFF689F38),
+        'route': RouteName.dashboardScreen,
       },
     ];
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F2C43),
+        backgroundColor: const Color(0xFF072B3E),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
@@ -93,9 +102,7 @@ class AllPackageGridScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // প্যাকেজ নাম ও স্ট্যাটাস কার্ড
-          _buildPackageHeader(),
-          
+          _buildPackageHeader(packageName ?? '১৯তম বিজেএস প্রিলি প্রস্তুতি'),
           Expanded(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -111,9 +118,9 @@ class AllPackageGridScreen extends StatelessWidget {
                 itemCount: modules.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 16.w,
-                  mainAxisSpacing: 16.h,
-                  childAspectRatio: 1.1,
+                  crossAxisSpacing: 12.w,
+                  mainAxisSpacing: 12.h,
+                  childAspectRatio: 1.05,
                 ),
                 itemBuilder: (context, index) {
                   final module = modules[index];
@@ -123,6 +130,7 @@ class AllPackageGridScreen extends StatelessWidget {
                     module['subtitle'],
                     module['icon'],
                     module['color'],
+                    module['route'],
                   );
                 },
               ),
@@ -133,36 +141,36 @@ class AllPackageGridScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPackageHeader() {
+  Widget _buildPackageHeader(String name) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20.r),
-      color: const Color(0xFF0F2C43),
+      padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 24.h),
+      color: const Color(0xFF072B3E),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
             decoration: BoxDecoration(
-              color: Colors.green,
+              color: const Color(0xFFF5B301),
               borderRadius: BorderRadius.circular(6.r),
             ),
             child: Text(
               'ENROLLED',
-              style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(color: const Color(0xFF072B3E), fontSize: 10.sp, fontWeight: FontWeight.bold),
             ),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           Text(
-            packageName,
+            name,
             style: TextStyle(
               color: Colors.white,
-              fontSize: 18.sp,
+              fontSize: 20.sp,
               fontWeight: FontWeight.bold,
               height: 1.3,
             ),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 8.h),
           Text(
             'মেয়াদ: ১৯তম বিজেএস প্রিলি পরীক্ষা পর্যন্ত',
             style: TextStyle(color: Colors.white70, fontSize: 12.sp),
@@ -172,7 +180,7 @@ class AllPackageGridScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildModuleCard(BuildContext context, String title, String subtitle, IconData icon, Color color) {
+  Widget _buildModuleCard(BuildContext context, String title, String subtitle, IconData icon, Color color, String? route) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -189,25 +197,24 @@ class AllPackageGridScreen extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // প্রতিটি মডিউলের জন্য আলাদা রাউটিং এখানে হবে
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Opening $title...')),
-            );
+            if (route != null) {
+              Navigator.pushNamed(context, route);
+            }
           },
           borderRadius: BorderRadius.circular(20.r),
           child: Padding(
-            padding: EdgeInsets.all(16.r),
+            padding: EdgeInsets.all(12.r),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: EdgeInsets.all(10.r),
+                  padding: EdgeInsets.all(8.r),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(10.r),
                   ),
-                  child: Icon(icon, color: color, size: 24.r),
+                  child: Icon(icon, color: color, size: 22.r),
                 ),
                 const Spacer(),
                 Text(
@@ -215,10 +222,10 @@ class AllPackageGridScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F2C43),
+                    color: const Color(0xFF072B3E),
                   ),
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: 2.h),
                 Text(
                   subtitle,
                   style: TextStyle(

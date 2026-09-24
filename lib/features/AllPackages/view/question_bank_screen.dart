@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class SyllabusScreen extends StatelessWidget {
-  const SyllabusScreen({super.key});
+class QuestionBankScreen extends StatelessWidget {
+  const QuestionBankScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,17 +10,14 @@ class SyllabusScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
         children: [
-          _buildHeader(context, 'Package Syllabus'),
+          _buildHeader(context, 'Question Banks'),
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.all(16.w),
-              itemCount: 3,
+              itemCount: 5,
               separatorBuilder: (context, index) => SizedBox(height: 12.h),
               itemBuilder: (context, index) {
-                return _buildSyllabusCard(
-                  title: index == 0 ? 'প্রিলিমিনারি সিলেবাস (MCQ)' : 'লিখিত পরীক্ষার পূর্ণাঙ্গ সিলেবাস',
-                  description: 'বাংলাদেশ জুডিশিয়াল সার্ভিস (বিজেএস) পরীক্ষার জন্য নির্ধারিত পাঠ্যসূচি।',
-                );
+                return _buildQBankCard(context);
               },
             ),
           ),
@@ -34,7 +31,10 @@ class SyllabusScreen extends StatelessWidget {
       width: double.infinity,
       decoration: const BoxDecoration(
         color: Color(0xFF072B3E),
-        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
       ),
       child: SafeArea(
         bottom: false,
@@ -59,7 +59,7 @@ class SyllabusScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSyllabusCard({required String title, required String description}) {
+  Widget _buildQBankCard(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -71,21 +71,21 @@ class SyllabusScreen extends StatelessWidget {
         children: [
           Container(
             padding: EdgeInsets.all(12.r),
-            decoration: BoxDecoration(color: const Color(0xFFE0F2F1), borderRadius: BorderRadius.circular(12.r)),
-            child: Icon(Icons.menu_book_rounded, color: Colors.teal, size: 24.r),
+            decoration: BoxDecoration(color: const Color(0xFFF3E5F5), borderRadius: BorderRadius.circular(12.r)),
+            child: Icon(Icons.quiz_rounded, color: Colors.purple, size: 24.r),
           ),
           SizedBox(width: 16.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E))),
+                Text('বিজেএস প্রিলিমিনারি প্রশ্নব্যাংক', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E))),
                 SizedBox(height: 4.h),
-                Text(description, style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text('Subject: Civil Procedure Code', style: TextStyle(fontSize: 11.sp, color: Colors.grey[600])),
               ],
             ),
           ),
-          const Icon(Icons.remove_red_eye_outlined, color: Colors.teal),
+          Icon(Icons.download_for_offline_outlined, color: const Color(0xFF072B3E), size: 22.r),
         ],
       ),
     );

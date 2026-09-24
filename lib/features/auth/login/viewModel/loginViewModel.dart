@@ -23,11 +23,16 @@ class LoginViewModel extends ChangeNotifier {
 
     _isLoading = false;
     if (response.success && response.authorization != null) {
+      // Save Access Token
       await _storage.saveToken(response.authorization!.accessToken);
+      // Save Refresh Token
+      await _storage.saveRefreshToken(response.authorization!.refreshToken);
+      
       if (response.role != null) {
         await _storage.saveUserRole(response.role!);
       }
       await _storage.saveUserEmail(email);
+
       notifyListeners();
       return true;
     } else {

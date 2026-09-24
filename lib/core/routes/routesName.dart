@@ -22,4 +22,6 @@ class RouteName {
   static const suggestionScreen = "suggestionScreen";
   static const bookReferenceScreen = "bookReferenceScreen";
   static const legalDictionaryScreen = "legalDictionaryScreen";
+  static const enrolledPackageDashboard = "enrolledPackageDashboard";
+  static const questionBanks = "questionBanks";
 }

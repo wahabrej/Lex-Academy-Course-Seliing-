@@ -41,7 +41,7 @@ class AllPackageScreen extends StatelessWidget {
                 title: 'রিটেন প্যাকেজ',
                 subtitle: 'Written exam প্রস্তুতির প্যাকেজ',
                 countText: '১ টি',
-                child: _buildYellowPackageCard(),
+                child: _buildYellowPackageCard(context),
               ),
               SizedBox(height: 20.h),
             ],
@@ -274,7 +274,8 @@ class AllPackageScreen extends StatelessWidget {
             bgColor: const Color(0xFFFFC107),
             textColor: Colors.black,
             onTap: () {
-              Navigator.pushNamed(context, RouteName.allPackageGridScreen);
+              // সরাসরি এনরোলড প্যাকেজ ড্যাশবোর্ডে নিয়ে যাবে
+              Navigator.pushNamed(context, RouteName.enrolledPackageDashboard);
             },
           ),
         ],
@@ -283,7 +284,7 @@ class AllPackageScreen extends StatelessWidget {
   }
 
   // Yellow Package Card (Written)
-  Widget _buildYellowPackageCard() {
+  Widget _buildYellowPackageCard(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
@@ -363,7 +364,7 @@ class AllPackageScreen extends StatelessWidget {
               Text(
                 '/ সম্পূর্ণ প্যাকেজ',
                 style: TextStyle(
-                  color: const Color(0xFF0B253A).withValues(alpha: 0.8),
+                  color: const Color(0xFF0B253A).withOpacity(0.8),
                   fontSize: 11.sp,
                 ),
               ),
@@ -376,14 +377,19 @@ class AllPackageScreen extends StatelessWidget {
             title: 'বিস্তারিত',
             borderColor: const Color(0xFF0B253A),
             textColor: const Color(0xFF0B253A),
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, RouteName.packageDetailScreen);
+            },
           ),
           SizedBox(height: 8.h),
           _buildFilledButton(
             title: 'প্যাকেজে প্রবেশ করুন',
             bgColor: const Color(0xFF0B253A),
             textColor: Colors.white,
-            onTap: () {},
+            onTap: () {
+              // সরাসরি এনরোলড প্যাকেজ ড্যাশবোর্ডে নিয়ে যাবে
+              Navigator.pushNamed(context, RouteName.enrolledPackageDashboard);
+            },
           ),
         ],
       ),
