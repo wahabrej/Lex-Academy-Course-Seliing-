@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class LiveExamScreen extends StatelessWidget {
+class LiveExamScreen extends StatefulWidget {
   const LiveExamScreen({super.key});
+
+  @override
+  State<LiveExamScreen> createState() => _LiveExamScreenState();
+}
+
+class _LiveExamScreenState extends State<LiveExamScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,15 +23,30 @@ class LiveExamScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
         children: [
-          // ---------------- হেডার ----------------
-          _buildHeader(context, 'Live Exam'),
-
-
-          // ---------------- বডি ----------------
+          _buildHeader(context),
+          Container(
+            color: const Color(0xFF072B3E),
+            child: TabBar(
+              controller: _tabController,
+              indicatorColor: const Color(0xFFF5B301),
+              indicatorWeight: 3,
+              labelColor: const Color(0xFFF5B301),
+              unselectedLabelColor: Colors.white70,
+              tabs: const [
+                Tab(text: 'Live Exams'),
+                Tab(text: 'Archived'),
+                Tab(text: 'Past Exams'),
+              ],
+            ),
+          ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-              child: _buildLiveExamCard(),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildExamList('Live'),
+                _buildExamList('Archived'),
+                _buildExamList('Past'),
+              ],
             ),
           ),
         ],
@@ -26,64 +54,26 @@ class LiveExamScreen extends StatelessWidget {
     );
   }
 
-  // ---------------- হেডার উইজেট ----------------
-  Widget _buildHeader(BuildContext context, String title) {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Color(0xFF072B3E),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
+      color: const Color(0xFF072B3E),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 24.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 10.h),
+          child: Row(
             children: [
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
                   padding: EdgeInsets.all(8.r),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.arrow_back_ios_new,
-                    color: const Color(0xFF072B3E),
-                    size: 16.sp,
-                  ),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10.r)),
+                  child: Icon(Icons.arrow_back_ios_new, color: const Color(0xFF072B3E), size: 16.sp),
                 ),
               ),
-              SizedBox(height: 20.h),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 16.h),
-              Text(
-                '১৯তম বিজেএস লিখিত পরীক্ষার প্রস্তুতি',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+              SizedBox(width: 16.w),
+              Text('Exams', style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white)),
             ],
           ),
         ),
@@ -91,123 +81,76 @@ class LiveExamScreen extends StatelessWidget {
     );
   }
 
-  // ---------------- লাইভ এক্সাম কার্ড ----------------
-  Widget _buildLiveExamCard() {
+  Widget _buildExamList(String type) {
+    return ListView.separated(
+      padding: EdgeInsets.all(16.w),
+      itemCount: 3,
+      separatorBuilder: (context, index) => SizedBox(height: 16.h),
+      itemBuilder: (context, index) => _buildExamCard(type),
+    );
+  }
+
+  Widget _buildExamCard(String type) {
     return Container(
-      width: double.infinity,
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFEBEE),
+                  color: type == 'Live' ? Colors.red.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(4.r),
                 ),
                 child: Text(
-                  'Live',
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFFE53935),
-                  ),
+                  type == 'Live' ? 'LIVE NOW' : type.toUpperCase(),
+                  style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.bold, color: type == 'Live' ? Colors.red : Colors.grey[700]),
                 ),
               ),
-              SizedBox(width: 6.w),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F2F5),
-                  borderRadius: BorderRadius.circular(4.r),
-                ),
-                child: Text(
-                  'Written',
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A1A1A),
-                  ),
-                ),
-              ),
+              Text('Time: 10:00 AM', style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
             ],
           ),
           SizedBox(height: 12.h),
           Text(
-            '১৯তম বিজেএস লিখিত পরীক্ষার প্রস্তুতি',
-            style: TextStyle(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF1A1A1A),
-              height: 1.4,
-            ),
+            'দেওয়ানি কার্যবিধি - পূর্ণাঙ্গ মডেল টেস্ট ০২',
+            style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E)),
           ),
-          SizedBox(height: 8.h),
-          Text(
-            'Subject Name: অপরাধ সঞ্চার আইনসমূহ',
-            style: TextStyle(
-              fontSize: 13.sp,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Total Marks: 100',
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                children: [
+                  const Icon(Icons.help_outline, size: 14, color: Colors.grey),
+                  SizedBox(width: 4.w),
+                  Text('100 Qs', style: TextStyle(fontSize: 11.sp, color: Colors.grey[700])),
+                  SizedBox(width: 12.w),
+                  const Icon(Icons.timer_outlined, size: 14, color: Colors.grey),
+                  SizedBox(width: 4.w),
+                  Text('60 Mins', style: TextStyle(fontSize: 11.sp, color: Colors.grey[700])),
+                ],
               ),
-              SizedBox(width: 8.w),
-              Text(
-                'Duration: 3 Hours 15 Minutes',
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w600,
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: type == 'Live' ? const Color(0xFFF5B301) : const Color(0xFF072B3E),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+                  elevation: 0,
+                ),
+                child: Text(
+                  type == 'Live' ? 'Start Exam' : 'View Details',
+                  style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: type == 'Live' ? const Color(0xFF072B3E) : Colors.white),
                 ),
               ),
             ],
-          ),
-          SizedBox(height: 20.h),
-          SizedBox(
-            width: double.infinity,
-            height: 44.h,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF5B301),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                'পরীক্ষা দিন',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF072B3E),
-                ),
-              ),
-            ),
           ),
         ],
       ),

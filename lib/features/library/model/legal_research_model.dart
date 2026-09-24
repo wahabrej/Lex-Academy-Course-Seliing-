@@ -12,14 +12,14 @@ class LegalResearchListResponse {
   });
 
   factory LegalResearchListResponse.fromJson(Map<String, dynamic> json) {
-    final dataJson = json['data'];
+    final dataPart = json['data'];
     List<dynamic> itemsList = [];
     LegalResearchMeta? metaData;
 
-    if (dataJson is Map<String, dynamic>) {
-      itemsList = dataJson['data'] is List ? dataJson['data'] : [];
-      if (dataJson['meta'] != null) {
-        metaData = LegalResearchMeta.fromJson(dataJson['meta']);
+    if (dataPart is Map<String, dynamic>) {
+      itemsList = dataPart['data'] is List ? dataPart['data'] : [];
+      if (dataPart['meta'] != null) {
+        metaData = LegalResearchMeta.fromJson(dataPart['meta']);
       }
     }
 
@@ -105,7 +105,7 @@ class LegalResearchMeta {
       total: json['total'] ?? 0,
       page: json['page'] ?? 1,
       limit: json['limit'] ?? 10,
-      totalPages: json['total_pages'] ?? 1,
+      totalPages: json['totalPages'] ?? 1,
     );
   }
 }

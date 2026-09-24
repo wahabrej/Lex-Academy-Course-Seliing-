@@ -14,6 +14,16 @@ class FlashcardViewModel extends ChangeNotifier {
   FlashcardDeck? _selectedDeck;
   FlashcardDeck? get selectedDeck => _selectedDeck;
 
+  // Study Mode State
+  int _currentCardIndex = 0;
+  int get currentCardIndex => _currentCardIndex;
+
+  bool _isFlipped = false;
+  bool get isFlipped => _isFlipped;
+
+  List<FlashcardItem> _studyCards = [];
+  List<FlashcardItem> get studyCards => _studyCards;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -68,7 +78,11 @@ class FlashcardViewModel extends ChangeNotifier {
     );
 
     if (response.success) {
-      _decks = response.items;
+      if (isRefresh) {
+        _decks = response.items;
+      } else {
+        _decks.addAll(response.items);
+      }
       _meta = response.meta;
     } else {
       _errorMessage = response.message;
@@ -81,6 +95,8 @@ class FlashcardViewModel extends ChangeNotifier {
     _isDetailLoading = true;
     _selectedDeck = null;
     _errorMessage = null;
+    _currentCardIndex = 0;
+    _isFlipped = false;
     notifyListeners();
 
     final response = await _repository.getDeckDetail(id);
@@ -88,6 +104,7 @@ class FlashcardViewModel extends ChangeNotifier {
     
     if (response.success && response.data != null) {
       _selectedDeck = response.data;
+      _studyCards = List.from(_selectedDeck!.flashcards);
       notifyListeners();
       return true;
     } else {
@@ -95,6 +112,42 @@ class FlashcardViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  // --- Study Logic ---
+
+  void flipCard() {
+    _isFlipped = !_isFlipped;
+    notifyListeners();
+  }
+
+  void nextCard() {
+    if (_currentCardIndex < _studyCards.length - 1) {
+      _currentCardIndex++;
+      _isFlipped = false;
+      notifyListeners();
+    }
+  }
+
+  void previousCard() {
+    if (_currentCardIndex > 0) {
+      _currentCardIndex--;
+      _isFlipped = false;
+      notifyListeners();
+    }
+  }
+
+  void resetDeck() {
+    _currentCardIndex = 0;
+    _isFlipped = false;
+    notifyListeners();
+  }
+
+  void shuffleCards() {
+    _studyCards.shuffle();
+    _currentCardIndex = 0;
+    _isFlipped = false;
+    notifyListeners();
   }
 
   void clearFilters() {

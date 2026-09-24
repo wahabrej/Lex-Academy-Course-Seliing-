@@ -32,8 +32,6 @@ class FlashcardDecksResponse {
       if (dataJson['meta'] != null) {
         metaData = FlashcardMeta.fromJson(dataJson['meta']);
       }
-    } else if (dataJson is List) {
-      itemsList = dataJson;
     }
 
     return FlashcardDecksResponse(
@@ -67,9 +65,18 @@ class FlashcardDeck {
   final String description;
   final String category;
   final int flashcardCount;
+  final String? creatorName;
   final List<FlashcardItem> flashcards;
 
-  FlashcardDeck({required this.id, required this.title, required this.description, required this.category, required this.flashcardCount, required this.flashcards});
+  FlashcardDeck({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.category,
+    required this.flashcardCount,
+    this.creatorName,
+    required this.flashcards,
+  });
 
   factory FlashcardDeck.fromJson(Map<String, dynamic> json) {
     final flashcardsList = json['flashcards'] as List? ?? [];
@@ -79,6 +86,7 @@ class FlashcardDeck {
       description: json['description'] ?? '',
       category: json['category'] ?? '',
       flashcardCount: json['_count']?['flashcards'] ?? flashcardsList.length,
+      creatorName: json['creator']?['name'],
       flashcards: flashcardsList.map((e) => FlashcardItem.fromJson(e as Map<String, dynamic>)).toList(),
     );
   }
@@ -90,8 +98,16 @@ class FlashcardItem {
   final String backText;
   final String? frontImage;
   final String? backImage;
+  final int? orderIndex;
 
-  FlashcardItem({required this.id, required this.frontText, required this.backText, this.frontImage, this.backImage});
+  FlashcardItem({
+    required this.id,
+    required this.frontText,
+    required this.backText,
+    this.frontImage,
+    this.backImage,
+    this.orderIndex,
+  });
 
   factory FlashcardItem.fromJson(Map<String, dynamic> json) {
     return FlashcardItem(
@@ -100,19 +116,24 @@ class FlashcardItem {
       backText: json['back_text'] ?? '',
       frontImage: json['front_image'],
       backImage: json['back_image'],
+      orderIndex: json['order_index'],
     );
   }
 }
 
 class FlashcardMeta {
   final int total;
+  final int page;
+  final int limit;
   final int totalPages;
 
-  FlashcardMeta({required this.total, required this.totalPages});
+  FlashcardMeta({required this.total, required this.page, required this.limit, required this.totalPages});
 
   factory FlashcardMeta.fromJson(Map<String, dynamic> json) {
     return FlashcardMeta(
       total: json['total'] ?? 0,
+      page: json['page'] ?? 1,
+      limit: json['limit'] ?? 10,
       totalPages: json['total_pages'] ?? 1,
     );
   }

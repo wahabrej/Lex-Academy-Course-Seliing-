@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constant/ApiEndPoint.dart';
 import '../../../core/constant/TokenStorage.dart';
-import '../model/legal_research_model.dart';
+import '../model/article_model.dart';
 
-class LegalResearchRepository {
+class ArticleRepository {
   final AppStorage _storage = AppStorage();
 
   Future<Map<String, String>> _getHeaders() async {
@@ -20,13 +20,12 @@ class LegalResearchRepository {
     return headers;
   }
 
-  Future<LegalResearchListResponse> getResearchPapers({
+  Future<ArticleResponse> getArticles({
     int page = 1,
     int limit = 10,
     String? search,
+    String? category,
     String? tag,
-    String sortBy = 'created_at',
-    String sortOrder = 'desc',
   }) async {
     try {
       final headers = await _getHeaders();
@@ -34,65 +33,88 @@ class LegalResearchRepository {
       final Map<String, String> queryParams = {
         'page': page.toString(),
         'limit': limit.toString(),
-        'sortBy': sortBy,
-        'sortOrder': sortOrder,
       };
 
       if (search != null && search.isNotEmpty) {
         queryParams['search'] = search;
       }
+      if (category != null && category.isNotEmpty) {
+        queryParams['category'] = category;
+      }
       if (tag != null && tag.isNotEmpty) {
         queryParams['tag'] = tag;
       }
 
-      final uri = Uri.parse(ApiEndPoint.legalResearch).replace(queryParameters: queryParams);
+      final uri = Uri.parse(ApiEndPoint.articles).replace(queryParameters: queryParams);
       
-      debugPrint("📡 [API] Requesting Legal Research Papers: $uri");
+      debugPrint("📡 [API] Requesting Articles: $uri");
       final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        return LegalResearchListResponse.fromJson(data);
+        return ArticleResponse.fromJson(data);
       } else {
-        return LegalResearchListResponse(
+        return ArticleResponse(
           success: false,
           message: 'Server error: ${response.statusCode}',
-          items: [],
+          data: ArticleData(items: [], meta: Meta(total: 0, page: page, limit: limit, totalPages: 0)),
         );
       }
     } catch (e) {
-      debugPrint("❌ [API] Research List Exception: $e");
-      return LegalResearchListResponse(
+      debugPrint("❌ [API] Articles Exception: $e");
+      return ArticleResponse(
         success: false,
         message: e.toString(),
-        items: [],
+        data: ArticleData(items: [], meta: Meta(total: 0, page: page, limit: limit, totalPages: 0)),
       );
     }
   }
 
-  Future<LegalResearchDetailResponse> getResearchDetail(String id) async {
+  Future<ArticleTagsResponse> getArticleTags() async {
     try {
       final headers = await _getHeaders();
-      final uri = Uri.parse(ApiEndPoint.legalResearchDetails(id));
+      final uri = Uri.parse(ApiEndPoint.articleTags);
       
-      debugPrint("📡 [API] Requesting Research Detail: $uri");
+      debugPrint("📡 [API] Requesting Article Tags: $uri");
       final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        return LegalResearchDetailResponse.fromJson(data);
+        return ArticleTagsResponse.fromJson(data);
       } else {
-        return LegalResearchDetailResponse(
+        return ArticleTagsResponse(
           success: false,
           message: 'Server error: ${response.statusCode}',
+          data: [],
         );
       }
     } catch (e) {
-      debugPrint("❌ [API] Research Detail Exception: $e");
-      return LegalResearchDetailResponse(
+      debugPrint("❌ [API] Article Tags Exception: $e");
+      return ArticleTagsResponse(
         success: false,
         message: e.toString(),
+        data: [],
       );
+    }
+  }
+
+  Future<ArticleDetailResponse> getArticleDetails(String slug) async {
+    try {
+      final headers = await _getHeaders();
+      final uri = Uri.parse(ApiEndPoint.articleDetails(slug));
+      
+      debugPrint("📡 [API] Requesting Article Details: $uri");
+      final response = await http.get(uri, headers: headers);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return ArticleDetailResponse.fromJson(data);
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint("❌ [API] Article Details Exception: $e");
+      rethrow;
     }
   }
 }

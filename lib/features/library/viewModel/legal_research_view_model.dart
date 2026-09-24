@@ -49,12 +49,16 @@ class LegalResearchViewModel extends ChangeNotifier {
 
     final response = await _repository.getResearchPapers(
       page: _currentPage,
-      search: _search,
-      tag: _selectedTag,
+      search: _search.isNotEmpty ? _search : null,
+      tag: _selectedTag.isNotEmpty ? _selectedTag : null,
     );
 
     if (response.success) {
-      _papers = response.items;
+      if (isRefresh) {
+        _papers = response.items;
+      } else {
+        _papers.addAll(response.items);
+      }
       _meta = response.meta;
     } else {
       _errorMessage = response.message;
@@ -72,21 +76,26 @@ class LegalResearchViewModel extends ChangeNotifier {
     final response = await _repository.getResearchDetail(id);
     _isDetailLoading = false;
     
-    if (response.success && response.data != null) {
+    if (successResponse(response)) {
       _selectedPaper = response.data;
       notifyListeners();
       return true;
     } else {
-      _errorMessage = response.message.isNotEmpty ? response.message : "Failed to load paper details";
+      _errorMessage = response.message;
       notifyListeners();
       return false;
     }
+  }
+
+  bool successResponse(LegalResearchDetailResponse response) {
+    return response.success && response.data != null;
   }
 
   void clearFilters() {
     _search = '';
     _selectedTag = '';
     _currentPage = 1;
+    _papers = [];
     notifyListeners();
   }
 }
