@@ -10,6 +10,7 @@ class NoteRepository {
 
   Future<Map<String, String>> _getHeaders() async {
     final token = await _storage.getToken();
+    debugPrint("🔑 [NoteRepo] Using Token: ${token != null ? 'EXISTS' : 'NULL'}");
     final Map<String, String> headers = {
       'accept': '*/*',
       'Content-Type': 'application/json',
@@ -43,8 +44,10 @@ class NoteRepository {
 
       final uri = Uri.parse(ApiEndPoint.notes).replace(queryParameters: queryParams);
       
-      debugPrint("📡 [API] Requesting Notes: $uri");
+      debugPrint("📡 [NoteRepo] GET Request: $uri");
       final response = await http.get(uri, headers: headers);
+      debugPrint("📩 [NoteRepo] Status: ${response.statusCode}");
+      debugPrint("📦 [NoteRepo] Raw Response: ${response.body}");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
@@ -53,15 +56,13 @@ class NoteRepository {
         return NoteResponse(
           success: false,
           message: 'Server error: ${response.statusCode}',
-          data: NoteData(items: [], meta: NoteMeta(total: 0, page: page, limit: limit, totalPages: 0)),
         );
       }
     } catch (e) {
-      debugPrint("❌ [API] Notes Exception: $e");
+      debugPrint("❌ [NoteRepo] Exception: $e");
       return NoteResponse(
         success: false,
         message: e.toString(),
-        data: NoteData(items: [], meta: NoteMeta(total: 0, page: page, limit: limit, totalPages: 0)),
       );
     }
   }
@@ -71,8 +72,9 @@ class NoteRepository {
       final headers = await _getHeaders();
       final uri = Uri.parse(ApiEndPoint.noteDetails(id));
       
-      debugPrint("📡 [API] Requesting Note Detail: $uri");
+      debugPrint("📡 [NoteRepo] GET Detail $uri");
       final response = await http.get(uri, headers: headers);
+      debugPrint("📩 [NoteRepo] Detail Status: ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
@@ -81,7 +83,7 @@ class NoteRepository {
         throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint("❌ [API] Note Detail Exception: $e");
+      debugPrint("❌ [NoteRepo] Detail Exception: $e");
       rethrow;
     }
   }

@@ -1,33 +1,35 @@
 class NoteResponse {
   final bool success;
   final String message;
-  final NoteData data;
+  final NoteData? data;
 
   NoteResponse({
     required this.success,
     required this.message,
-    required this.data,
+    this.data,
   });
 
   factory NoteResponse.fromJson(Map<String, dynamic> json) => NoteResponse(
-        success: json["success"],
-        message: json["message"],
-        data: NoteData.fromJson(json["data"]),
+        success: json["success"] ?? false,
+        message: json["message"] ?? "",
+        data: json["data"] != null ? NoteData.fromJson(json["data"]) : null,
       );
 }
 
 class NoteData {
   final List<Note> items;
-  final NoteMeta meta;
+  final NoteMeta? meta;
 
   NoteData({
     required this.items,
-    required this.meta,
+    this.meta,
   });
 
   factory NoteData.fromJson(Map<String, dynamic> json) => NoteData(
-        items: List<Note>.from(json["items"].map((x) => Note.fromJson(x))),
-        meta: NoteMeta.fromJson(json["meta"]),
+        items: json["items"] != null 
+            ? List<Note>.from(json["items"].map((x) => Note.fromJson(x)))
+            : [],
+        meta: json["meta"] != null ? NoteMeta.fromJson(json["meta"]) : null,
       );
 }
 
@@ -67,21 +69,25 @@ class Note {
   });
 
   factory Note.fromJson(Map<String, dynamic> json) => Note(
-        id: json["id"],
-        title: json["title"],
-        description: json["description"],
-        subject: json["subject"],
-        tier: json["tier"],
-        price: json["price"],
-        discountPrice: json["discount_price"],
+        id: json["id"]?.toString() ?? "",
+        title: json["title"]?.toString() ?? "",
+        description: json["description"]?.toString() ?? "",
+        subject: json["subject"]?.toString() ?? "General",
+        tier: json["tier"]?.toString() ?? "free",
+        price: json["price"] ?? 0,
+        discountPrice: json["discount_price"] ?? 0,
         filePath: json["file_path"],
-        fileMime: json["file_mime"],
+        fileMime: json["file_mime"]?.toString() ?? "",
         previewFilePath: json["preview_file_path"],
         previewFileMime: json["preview_file_mime"],
-        packages: List<NotePackage>.from(json["packages"].map((x) => NotePackage.fromJson(x))),
-        downloadCount: json["download_count"],
-        isLocked: json["is_locked"],
-        createdAt: DateTime.parse(json["created_at"]),
+        packages: json["packages"] != null 
+            ? List<NotePackage>.from(json["packages"].map((x) => NotePackage.fromJson(x)))
+            : [],
+        downloadCount: json["download_count"] ?? 0,
+        isLocked: json["is_locked"] ?? true,
+        createdAt: json["created_at"] != null 
+            ? DateTime.tryParse(json["created_at"]) ?? DateTime.now()
+            : DateTime.now(),
       );
 }
 
@@ -95,8 +101,8 @@ class NotePackage {
   });
 
   factory NotePackage.fromJson(Map<String, dynamic> json) => NotePackage(
-        id: json["id"],
-        title: json["title"],
+        id: json["id"]?.toString() ?? "",
+        title: json["title"]?.toString() ?? "",
       );
 }
 
@@ -114,27 +120,27 @@ class NoteMeta {
   });
 
   factory NoteMeta.fromJson(Map<String, dynamic> json) => NoteMeta(
-        total: json["total"],
-        page: json["page"],
-        limit: json["limit"],
-        totalPages: json["total_pages"],
+        total: json["total"] ?? 0,
+        page: json["page"] ?? 1,
+        limit: json["limit"] ?? 10,
+        totalPages: json["total_pages"] ?? 1,
       );
 }
 
 class NoteDetailResponse {
   final bool success;
   final String message;
-  final Note data;
+  final Note? data;
 
   NoteDetailResponse({
     required this.success,
     required this.message,
-    required this.data,
+    this.data,
   });
 
   factory NoteDetailResponse.fromJson(Map<String, dynamic> json) => NoteDetailResponse(
-        success: json["success"],
-        message: json["message"],
-        data: Note.fromJson(json["data"]),
+        success: json["success"] ?? false,
+        message: json["message"] ?? "",
+        data: json["data"] != null ? Note.fromJson(json["data"]) : null,
       );
 }

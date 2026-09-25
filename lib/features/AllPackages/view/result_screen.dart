@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import '../viewModel/exam_view_model.dart';
 
 class ResultScreen extends StatefulWidget {
-  const ResultScreen({super.key});
+  final String packageId;
+  const ResultScreen({super.key, this.packageId = "204259de-0306-4e04-98d6-8e15ab9ad783"});
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -10,9 +13,22 @@ class ResultScreen extends StatefulWidget {
 
 class _ResultScreenState extends State<ResultScreen> {
   int _selectedTab = 0; // 0 = Result, 1 = Merit List, 2 = Details
+  String? _selectedExamId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final examVm = Provider.of<ExamViewModel>(context, listen: false);
+      examVm.fetchExamAttempts(packageId: widget.packageId);
+      examVm.fetchSubjectBreakdown(widget.packageId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final examVm = Provider.of<ExamViewModel>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
@@ -22,30 +38,49 @@ class _ResultScreenState extends State<ResultScreen> {
 
           // ---------------- বডি ----------------
           Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ---------------- ট্যাব রো ----------------
-                  Row(
-                    children: [
-                      _buildTabChip('Result', 0),
-                      SizedBox(width: 8.w),
-                      _buildTabChip('Merit List', 1),
-                      SizedBox(width: 8.w),
-                      _buildTabChip('Details', 2),
-                    ],
-                  ),
-                  SizedBox(height: 20.h),
+            child: examVm.isLoading
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF072B3E)))
+                : examVm.errorMessage != null
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(examVm.errorMessage!, style: const TextStyle(color: Colors.red)),
+                            SizedBox(height: 10.h),
+                            ElevatedButton(
+                              onPressed: () {
+                                examVm.fetchExamAttempts(packageId: widget.packageId);
+                                examVm.fetchSubjectBreakdown(widget.packageId);
+                              },
+                              child: const Text('Retry'),
+                            )
+                          ],
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // ---------------- ট্যাব রো ----------------
+                            Row(
+                              children: [
+                                _buildTabChip('Result', 0),
+                                SizedBox(width: 8.w),
+                                _buildTabChip('Merit List', 1),
+                                SizedBox(width: 8.w),
+                                _buildTabChip('Details', 2),
+                              ],
+                            ),
+                            SizedBox(height: 20.h),
 
-                  // ---------------- ট্যাব কন্টেন্ট ----------------
-                  if (_selectedTab == 0) _buildResultTab(),
-                  if (_selectedTab == 1) _buildMeritListTab(),
-                  if (_selectedTab == 2) _buildDetailsTab(),
-                ],
-              ),
-            ),
+                            // ---------------- ট্যাব কন্টেন্ট ----------------
+                            if (_selectedTab == 0) _buildResultTab(examVm),
+                            if (_selectedTab == 1) _buildMeritListTab(examVm),
+                            if (_selectedTab == 2) _buildDetailsTab(examVm),
+                          ],
+                        ),
+                      ),
           ),
         ],
       ),
@@ -79,13 +114,6 @@ class _ResultScreenState extends State<ResultScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: Icon(
                     Icons.arrow_back_ios_new,
@@ -105,7 +133,7 @@ class _ResultScreenState extends State<ResultScreen> {
               ),
               SizedBox(height: 8.h),
               Text(
-                '১৯তম বিজেএস লিখিত পরীক্ষার প্রস্তুতি',
+                'বিজেএস পরীক্ষার ফলাফল ও পারফরম্যান্স',
                 style: TextStyle(
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w500,
@@ -154,34 +182,35 @@ class _ResultScreenState extends State<ResultScreen> {
   // ============================================================
   //                    ১. Result ট্যাব
   // ============================================================
-  Widget _buildResultTab() {
-    final List<Map<String, dynamic>> results = [
-      {
-        'date': '23/08/2026',
-        'title': '১৯তম বিজেএস প্রিলি পরীক্ষার প্রস্তুতি',
-        'subject': 'Preliminary',
-        'score': '-0.25 / 100',
-        'rank': '#11 / 12',
-      },
-      {
-        'date': '23/08/2026',
-        'title': '১৯তম বিজেএস প্রিলি পরীক্ষার প্রস্তুতি',
-        'subject': 'Preliminary',
-        'score': '-0.25 / 100',
-        'rank': '#11 / 12',
-      },
-    ];
+  Widget _buildResultTab(ExamViewModel examVm) {
+    if (examVm.attempts.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text('কোনো পরীক্ষার ফলাফল পাওয়া যায়নি।'),
+        ),
+      );
+    }
 
     return Column(
       children: [
-        ...results.map((r) => Padding(
+        ...examVm.attempts.map((attempt) => Padding(
           padding: EdgeInsets.only(bottom: 16.h),
           child: _buildResultCard(
-            date: r['date'],
-            title: r['title'],
-            subject: r['subject'],
-            score: r['score'],
-            rank: r['rank'],
+            date: attempt.startedAt != null 
+                ? "${attempt.startedAt!.day}/${attempt.startedAt!.month}/${attempt.startedAt!.year}" 
+                : 'N/A',
+            title: 'Exam ID: ${attempt.examId}',
+            subject: attempt.status.toUpperCase(),
+            score: "${attempt.score ?? 0} / 100",
+            rank: 'Completed',
+            onTapMerit: () {
+              setState(() {
+                _selectedExamId = attempt.examId;
+                _selectedTab = 1;
+              });
+              examVm.fetchMeritList(attempt.examId);
+            },
           ),
         )),
       ],
@@ -191,90 +220,20 @@ class _ResultScreenState extends State<ResultScreen> {
   // ============================================================
   //                  ২. Merit List ট্যাব
   // ============================================================
-  Widget _buildMeritListTab() {
-    final List<Map<String, dynamic>> meritList = [
-      {
-        'image': 'https://i.pravatar.cc/150?img=12',
-        'name': 'AL AMIN SHADHEEN',
-        'dept': 'পদার্থ বিদ্যা',
-        'score': '৮৪.৫',
-      },
-      {
-        'image': 'https://i.pravatar.cc/150?img=33',
-        'name': 'Md. Imran Hossen',
-        'dept': 'হিসাব বিজ্ঞান',
-        'score': '৮০.৫',
-      },
-      {
-        'image': 'https://i.pravatar.cc/150?img=45',
-        'name': 'TaNha',
-        'dept': 'রসায়ন',
-        'score': '৭৬.৫',
-      },
-      {
-        'image': 'https://i.pravatar.cc/150?img=15',
-        'name': 'Ansari',
-        'dept': 'ব্যবস্থাপনা',
-        'score': '৭৫.৫',
-      },
-      {
-        'image': 'https://i.pravatar.cc/150?img=22',
-        'name': 'Satu',
-        'dept': 'পদার্থ বিদ্যা',
-        'score': '৭০.৫',
-      },
-      {
-        'image': 'https://i.pravatar.cc/150?img=58',
-        'name': 'Sayzid Ahmed',
-        'dept': 'গণিত',
-        'score': '৬৪.৫',
-      },
-      {
-        'image': 'https://i.pravatar.cc/150?img=60',
-        'name': 'MD. RAKIBUL HASAN',
-        'dept': 'হিসাব বিজ্ঞান',
-        'score': '৫৬.৫',
-      },
-      {
-        'image': 'https://i.pravatar.cc/150?img=47',
-        'name': 'Ritashree Devi',
-        'dept': 'ইংরেজি',
-        'score': '৪৬.৫',
-      },
-      {
-        'image': 'https://i.pravatar.cc/150?img=68',
-        'name': 'ddfc',
-        'dept': 'সাধারণ',
-        'score': '-০.৫',
-      },
-    ];
+  Widget _buildMeritListTab(ExamViewModel examVm) {
+    final meritItems = examVm.meritList?.items ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ---------------- কার্ড ১ ----------------
-        _buildResultCard(
-          date: '23/08/2026, 12:36:00 AM',
-          title: '১৯তম বিজেএস প্রিলি পরীক্ষার প্রস্তুতি',
-          subject: '',
-          score: '',
-          rank: '',
-          showMeritButton: true,
-        ),
-        SizedBox(height: 16.h),
-
-        // ---------------- কার্ড ২ (Merit List) ----------------
-        _buildResultCard(
-          date: '23/08/2026, 12:36:00 AM',
-          title: '১৯তম বিজেএস প্রিলি পরীক্ষার প্রস্তুতি',
-          subject: '',
-          score: '',
-          rank: '',
-          showMeritButton: true,
-        ),
-        SizedBox(height: 16.h),
-
-        // ---------------- সার্চ বার ----------------
+        if (_selectedExamId != null) ...[
+          Text(
+            'Selected Exam ID: $_selectedExamId',
+            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E)),
+          ),
+          SizedBox(height: 10.h),
+        ],
+        
         Container(
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
           decoration: BoxDecoration(
@@ -304,8 +263,21 @@ class _ResultScreenState extends State<ResultScreen> {
         ),
         SizedBox(height: 16.h),
 
-        // ---------------- মেরিট লিস্ট ----------------
-        ...meritList.map((student) => _buildMeritListItem(student)),
+        if (meritItems.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text('অনুগ্রহ করে Result ট্যাব থেকে যেকোনো পরীক্ষার View Merit List বাটনে ক্লিক করুন।'),
+            ),
+          )
+        else
+          ...meritItems.map((student) => _buildMeritListItem(
+                name: student.name,
+                dept: student.department ?? 'সাধারণ',
+                score: student.score,
+                rank: student.rank.toString(),
+                image: student.image,
+              )),
       ],
     );
   }
@@ -313,98 +285,40 @@ class _ResultScreenState extends State<ResultScreen> {
   // ============================================================
   //                  ৩. Details ট্যাব
   // ============================================================
-  Widget _buildDetailsTab() {
-    final List<Map<String, dynamic>> details = [
-      {
-        'subject': 'বাংলা',
-        'correct': '0',
-        'wrong': '1',
-        'skipped': '19',
-        'score': '-0.25',
-        'accuracy': '0%',
-        'color': const Color(0xFFE53935),
-      },
-      {
-        'subject': 'English',
-        'correct': '2',
-        'wrong': '4',
-        'skipped': '14',
-        'score': '1.00',
-        'accuracy': '33%',
-        'color': const Color(0xFF43A047),
-      },
-      {
-        'subject': 'গণিত',
-        'correct': '0',
-        'wrong': '1',
-        'skipped': '9',
-        'score': '-0.25',
-        'accuracy': '0%',
-        'color': const Color(0xFFE53935),
-      },
-      {
-        'subject': 'বিজ্ঞান',
-        'correct': '0',
-        'wrong': '0',
-        'skipped': '10',
-        'score': '0.00',
-        'accuracy': '0%',
-        'color': const Color(0xFF1A1A1A),
-      },
-      {
-        'subject': 'সাধারণ জ্ঞান',
-        'correct': '0',
-        'wrong': '1',
-        'skipped': '4',
-        'score': '-0.25',
-        'accuracy': '0%',
-        'color': const Color(0xFFE53935),
-      },
-      {
-        'subject': 'কম্পিউটার',
-        'correct': '0',
-        'wrong': '0',
-        'skipped': '5',
-        'score': '0.00',
-        'accuracy': '0%',
-        'color': const Color(0xFF1A1A1A),
-      },
-    ];
+  Widget _buildDetailsTab(ExamViewModel examVm) {
+    final items = examVm.subjectBreakdown?.items ?? [];
+
+    if (items.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text('কোনো বিষয়ভিত্তিক ব্রেকডাউন তথ্য পাওয়া যায়নি।'),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ---------------- কার্ড ১ ----------------
-        _buildResultCard(
-          date: '23/08/2026, 12:36:00 AM',
-          title: '১৯তম বিজেএস প্রিলি পরীক্ষার প্রস্তুতি',
-          subject: '',
-          score: '',
-          rank: '',
-          showDetails: true,
+        Text(
+          'Subject Breakdown',
+          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E)),
         ),
-        SizedBox(height: 16.h),
-
-        // ---------------- কার্ড ২ ----------------
-        _buildResultCard(
-          date: '23/08/2026, 12:36:00 AM',
-          title: '১৯তম বিজেএস প্রিলি পরীক্ষার প্রস্তুতি',
-          subject: 'Preliminary • 22/07/2026',
-          score: '',
-          rank: '',
-          showDetails: true,
-          isExpanded: true,
-        ),
-        SizedBox(height: 16.h),
-
-        // ---------------- সাবজেক্ট ব্রেকডাউন কার্ড ----------------
-        ...details.map((d) => _buildSubjectDetailCard(d)),
+        SizedBox(height: 12.h),
+        ...items.map((d) => _buildSubjectDetailCard(
+              subject: d.subject,
+              correct: d.correct.toString(),
+              wrong: d.wrong.toString(),
+              skipped: d.skipped.toString(),
+              score: d.score,
+              accuracy: d.accuracy,
+            )),
       ],
     );
   }
 
   // ============================================================
-  //                  রেজাল্ট কার্ড (মূল)
+  //                  রেজাল্ট কার্ড উইজেট
   // ============================================================
   Widget _buildResultCard({
     required String date,
@@ -412,9 +326,7 @@ class _ResultScreenState extends State<ResultScreen> {
     required String subject,
     required String score,
     required String rank,
-    bool showMeritButton = false,
-    bool showDetails = false,
-    bool isExpanded = false,
+    required VoidCallback onTapMerit,
   }) {
     return Container(
       width: double.infinity,
@@ -422,23 +334,15 @@ class _ResultScreenState extends State<ResultScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 3))],
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ---------------- টপ রো ----------------
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // আর্কাইভ ব্যাজ
               Container(
                 padding: EdgeInsets.all(8.r),
                 decoration: BoxDecoration(
@@ -447,333 +351,134 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
                 child: Column(
                   children: [
-                    Text(
-                      'Archive',
-                      style: TextStyle(
-                        fontSize: 8.sp,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2E7D32),
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      'Written',
-                      style: TextStyle(
-                        fontSize: 8.sp,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2E7D32),
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      '08',
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1A1A1A),
-                      ),
-                    ),
+                    Text('Archive', style: TextStyle(fontSize: 8.sp, fontWeight: FontWeight.bold, color: const Color(0xFF2E7D32))),
+                    Text('Exam', style: TextStyle(fontSize: 8.sp, fontWeight: FontWeight.bold, color: const Color(0xFF2E7D32))),
                   ],
                 ),
               ),
               SizedBox(width: 12.w),
-              // ডান দিকের কন্টেন্ট
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1A1A1A),
-                        height: 1.4,
-                      ),
-                    ),
+                    Text(title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1A1A1A), height: 1.4)),
                     SizedBox(height: 6.h),
-                    Text(
-                      subject.isEmpty ? date : '$subject • $date',
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
+                    Text('$subject • $date', style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade600)),
                   ],
                 ),
               ),
-              if (isExpanded)
-                Icon(Icons.keyboard_arrow_up,
-                    color: Colors.grey.shade600, size: 20.sp),
             ],
           ),
-
-          // ---------------- Merit List বাটন ----------------
-          if (showMeritButton) ...[
-            SizedBox(height: 12.h),
-            SizedBox(
-              width: double.infinity,
-              height: 40.h,
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: Icon(Icons.emoji_events,
-                    color: Colors.white, size: 16.sp),
-                label: Text(
-                  'Merit List',
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          SizedBox(height: 16.h),
+          Divider(color: Colors.grey.shade200),
+          SizedBox(height: 12.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                children: [
+                  Text('স্কোর', style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade600)),
+                  SizedBox(height: 4.h),
+                  Text(score, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFFE53935))),
+                ],
+              ),
+              ElevatedButton(
+                onPressed: onTapMerit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF072B3E),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
                 ),
-              ),
-            ),
-          ],
-
-          // ---------------- স্কোর ও র্যাংক (Result ট্যাবে) ----------------
-          if (!showMeritButton && !showDetails) ...[
-            SizedBox(height: 16.h),
-            Divider(color: Colors.grey.shade200),
-            SizedBox(height: 12.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Column(
-                  children: [
-                    Text(
-                      'স্কোর',
-                      style: TextStyle(
-                        fontSize: 10.sp,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      score,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFFE53935),
-                      ),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    Text(
-                      'মেধাস্থান',
-                      style: TextStyle(
-                        fontSize: 10.sp,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      rank,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFFF5B301),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                child: Text('View Merit List', style: TextStyle(fontSize: 12.sp, color: Colors.white, fontWeight: FontWeight.bold)),
+              )
+            ],
+          )
         ],
       ),
     );
   }
 
-  // ============================================================
-  //                  মেরিট লিস্ট আইটেম
-  // ============================================================
-  Widget _buildMeritListItem(Map<String, dynamic> student) {
+  Widget _buildMeritListItem({
+    required String name,
+    required String score,
+    required String rank,
+    required String dept,
+    String? image,
+  }) {
     return Container(
       margin: EdgeInsets.only(bottom: 10.h),
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.grey.shade100),
       ),
       child: Row(
         children: [
-          // প্রোফাইল ছবি
           CircleAvatar(
+            backgroundImage: NetworkImage(image ?? 'https://i.pravatar.cc/150'),
             radius: 20.r,
-            backgroundImage: NetworkImage(student['image']),
           ),
           SizedBox(width: 12.w),
-          // নাম ও ডিপার্টমেন্ট
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  student['name'],
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A1A1A),
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  student['dept'],
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
+                Text(name, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold)),
+                Text(dept, style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
               ],
             ),
           ),
-          // স্কোর
-          Text(
-            student['score'],
-            style: TextStyle(
-              fontSize: 13.sp,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF072B3E),
-            ),
-          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('Marks: $score', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.green)),
+              Text('Rank: #$rank', style: TextStyle(fontSize: 11.sp, color: Colors.orange.shade800, fontWeight: FontWeight.bold)),
+            ],
+          )
         ],
       ),
     );
   }
 
-  // ============================================================
-  //                সাবজেক্ট ডিটেইল কার্ড (Details ট্যাব)
-  // ============================================================
-  Widget _buildSubjectDetailCard(Map<String, dynamic> detail) {
-    final Color scoreColor = detail['color'] as Color;
+  Widget _buildSubjectDetailCard({
+    required String subject,
+    required String correct,
+    required String wrong,
+    required String skipped,
+    required String score,
+    required String accuracy,
+  }) {
     return Container(
-      width: double.infinity,
       margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ---------------- টপ রো: সাবজেক্ট ও স্কোর ----------------
+          Text(subject, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E))),
+          SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                detail['subject'],
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1A1A1A),
-                ),
-              ),
-              Row(
-                children: [
-                  Text(
-                    detail['score'],
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.bold,
-                      color: scoreColor,
-                    ),
-                  ),
-                  SizedBox(width: 4.w),
-                  Icon(Icons.arrow_forward_ios,
-                      size: 12.sp, color: Colors.grey.shade500),
-                ],
-              ),
+              Text('Correct: $correct', style: TextStyle(fontSize: 12.sp, color: Colors.green)),
+              Text('Wrong: $wrong', style: TextStyle(fontSize: 12.sp, color: Colors.red)),
+              Text('Skipped: $skipped', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
             ],
           ),
-          SizedBox(height: 12.h),
-
-          // ---------------- প্রোগ্রেস বার ----------------
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4.r),
-            child: LinearProgressIndicator(
-              value: double.parse(
-                  (detail['accuracy'] as String).replaceAll('%', '')) /
-                  100,
-              minHeight: 6.h,
-              backgroundColor: Colors.grey.shade200,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                double.parse((detail['score'] as String).replaceAll('-', '')) >
-                    0
-                    ? const Color(0xFF43A047)
-                    : const Color(0xFFE53935),
-              ),
-            ),
-          ),
-          SizedBox(height: 12.h),
-
-          // ---------------- কাউন্ট রো ----------------
+          const Divider(),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildCountItem('সঠিক', detail['correct'],
-                  const Color(0xFF43A047)),
-              _buildCountItem('ভুল', detail['wrong'], const Color(0xFFE53935)),
-              _buildCountItem(
-                  'বাদ', detail['skipped'], const Color(0xFF1A1A1A)),
+              Text('Score: $score', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+              Text('Accuracy: $accuracy', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.blue)),
             ],
-          ),
-          SizedBox(height: 8.h),
-          // অ্যাকুরেসি
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              detail['accuracy'],
-              style: TextStyle(
-                fontSize: 11.sp,
-                fontWeight: FontWeight.bold,
-                color: scoreColor,
-              ),
-            ),
-          ),
+          )
         ],
       ),
-    );
-  }
-
-  Widget _buildCountItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10.sp,
-            color: Colors.grey.shade600,
-          ),
-        ),
-        SizedBox(height: 4.h),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
     );
   }
 }

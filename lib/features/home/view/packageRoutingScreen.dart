@@ -24,7 +24,10 @@ class _PackageRoutingScreenState extends State<PackageRoutingScreen> {
         backgroundColor: const Color(0xFF0F2C43),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -40,7 +43,7 @@ class _PackageRoutingScreenState extends State<PackageRoutingScreen> {
         children: [
           // Package Summary Header
           _buildSummaryHeader(),
-          
+
           // Modules Grid
           Expanded(
             child: GridView.count(
@@ -49,15 +52,60 @@ class _PackageRoutingScreenState extends State<PackageRoutingScreen> {
               mainAxisSpacing: 16.r,
               crossAxisSpacing: 16.r,
               children: [
-                _buildModuleCard(context, 'Exams', Icons.assignment_rounded, Colors.blue),
-                _buildModuleCard(context, 'Routine', Icons.calendar_month_rounded, Colors.orange),
-                _buildModuleCard(context, 'Syllabus', Icons.menu_book_rounded, Colors.green),
-                _buildModuleCard(context, 'Notes', Icons.description_rounded, Colors.purple),
-                _buildModuleCard(context, 'Q-Bank', Icons.quiz_rounded, Colors.teal),
-                _buildModuleCard(context, 'References', Icons.library_books_rounded, Colors.brown),
-                _buildModuleCard(context, 'Suggestions', Icons.tips_and_updates_rounded, Colors.amber),
-                _buildModuleCard(context, 'Notices', Icons.campaign_rounded, Colors.red),
-                _buildModuleCard(context, 'Analytics', Icons.bar_chart_rounded, Colors.indigo),
+                _buildModuleCard(
+                  context,
+                  'Exams',
+                  Icons.assignment_rounded,
+                  Colors.blue,
+                ),
+                _buildModuleCard(
+                  context,
+                  'Routine',
+                  Icons.calendar_month_rounded,
+                  Colors.orange,
+                ),
+                _buildModuleCard(
+                  context,
+                  'Syllabus',
+                  Icons.menu_book_rounded,
+                  Colors.green,
+                ),
+                _buildModuleCard(
+                  context,
+                  'Notes',
+                  Icons.description_rounded,
+                  Colors.purple,
+                ),
+                _buildModuleCard(
+                  context,
+                  'Q-Bank',
+                  Icons.quiz_rounded,
+                  Colors.teal,
+                ),
+                _buildModuleCard(
+                  context,
+                  'References',
+                  Icons.library_books_rounded,
+                  Colors.brown,
+                ),
+                _buildModuleCard(
+                  context,
+                  'Suggestions',
+                  Icons.tips_and_updates_rounded,
+                  Colors.amber,
+                ),
+                _buildModuleCard(
+                  context,
+                  'Notices',
+                  Icons.campaign_rounded,
+                  Colors.red,
+                ),
+                _buildModuleCard(
+                  context,
+                  'Analytics',
+                  Icons.bar_chart_rounded,
+                  Colors.indigo,
+                ),
               ],
             ),
           ),
@@ -96,7 +144,11 @@ class _PackageRoutingScreenState extends State<PackageRoutingScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.notifications_active_outlined, color: Colors.amber, size: 20),
+                const Icon(
+                  Icons.notifications_active_outlined,
+                  color: Colors.amber,
+                  size: 20,
+                ),
                 SizedBox(width: 10.w),
                 Expanded(
                   child: Text(
@@ -106,7 +158,7 @@ class _PackageRoutingScreenState extends State<PackageRoutingScreen> {
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -125,16 +177,18 @@ class _PackageRoutingScreenState extends State<PackageRoutingScreen> {
         ),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 11.sp,
-          ),
+          style: TextStyle(color: Colors.white70, fontSize: 11.sp),
         ),
       ],
     );
   }
 
-  Widget _buildModuleCard(BuildContext context, String title, IconData icon, Color color) {
+  Widget _buildModuleCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+  ) {
     return InkWell(
       onTap: () {
         // Routing to specific module screens
@@ -181,8 +235,8 @@ class _PackageRoutingScreenState extends State<PackageRoutingScreen> {
 
   void _navigateToModule(BuildContext context, String moduleName) {
     // This will be replaced with actual navigation when module screens are ready
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Opening $moduleName module...')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Opening $moduleName module...')));
   }
 }

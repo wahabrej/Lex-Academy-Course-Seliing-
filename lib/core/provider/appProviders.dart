@@ -13,6 +13,9 @@ import '../../features/library/viewModel/question_bank_view_model.dart';
 import '../../features/library/viewModel/article_view_model.dart';
 import '../../features/library/viewModel/note_view_model.dart';
 import '../../features/AllPackages/viewModel/package_view_model.dart';
+import '../../features/AllPackages/viewModel/routine_view_model.dart';
+import '../../features/AllPackages/viewModel/exam_view_model.dart';
+import '../../features/AllPackages/viewModel/syllabus_view_model.dart';
 
 class AppProviders {
   static List<ChangeNotifierProvider> getProviders() {
@@ -58,6 +61,15 @@ class AppProviders {
       ),
       ChangeNotifierProvider<PackageViewModel>(
         create: (context) => PackageViewModel(),
+      ),
+      ChangeNotifierProvider<RoutineViewModel>(
+        create: (context) => RoutineViewModel(),
+      ),
+      ChangeNotifierProvider<ExamViewModel>(
+        create: (context) => ExamViewModel(),
+      ),
+      ChangeNotifierProvider<SyllabusViewModel>(
+        create: (context) => SyllabusViewModel(),
       ),
     ];
   }

@@ -3,33 +3,35 @@ import 'dart:convert';
 class ArticleResponse {
   final bool success;
   final String message;
-  final ArticleData data;
+  final ArticleData? data;
 
   ArticleResponse({
     required this.success,
     required this.message,
-    required this.data,
+    this.data,
   });
 
   factory ArticleResponse.fromJson(Map<String, dynamic> json) => ArticleResponse(
-        success: json["success"],
-        message: json["message"],
-        data: ArticleData.fromJson(json["data"]),
+        success: json["success"] ?? false,
+        message: json["message"] ?? "",
+        data: json["data"] != null ? ArticleData.fromJson(json["data"]) : null,
       );
 }
 
 class ArticleData {
   final List<Article> items;
-  final Meta meta;
+  final Meta? meta;
 
   ArticleData({
     required this.items,
-    required this.meta,
+    this.meta,
   });
 
   factory ArticleData.fromJson(Map<String, dynamic> json) => ArticleData(
-        items: List<Article>.from(json["items"].map((x) => Article.fromJson(x))),
-        meta: Meta.fromJson(json["meta"]),
+        items: json["items"] != null 
+            ? List<Article>.from(json["items"].map((x) => Article.fromJson(x)))
+            : [],
+        meta: json["meta"] != null ? Meta.fromJson(json["meta"]) : null,
       );
 }
 
@@ -45,7 +47,7 @@ class Article {
   final String? coverImage;
   final int viewCount;
   final List<String> tags;
-  final Author author;
+  final Author? author;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final bool? isPublished;
@@ -67,7 +69,7 @@ class Article {
     this.coverImage,
     required this.viewCount,
     required this.tags,
-    required this.author,
+    this.author,
     this.createdAt,
     this.updatedAt,
     this.isPublished,
@@ -79,25 +81,27 @@ class Article {
   });
 
   factory Article.fromJson(Map<String, dynamic> json) => Article(
-        id: json["id"],
-        slug: json["slug"],
-        title: json["title"],
-        excerpt: json["excerpt"] ?? "",
+        id: json["id"]?.toString() ?? "",
+        slug: json["slug"]?.toString() ?? "",
+        title: json["title"]?.toString() ?? "",
+        excerpt: json["excerpt"]?.toString() ?? "",
         content: json["content"],
-        category: json["category"],
-        publishedAt: DateTime.parse(json["published_at"]),
+        category: json["category"]?.toString() ?? "General",
+        publishedAt: json["published_at"] != null 
+            ? DateTime.tryParse(json["published_at"]) ?? DateTime.now()
+            : DateTime.now(),
         bannerImage: json["banner_image"],
         coverImage: json["cover_image"],
-        viewCount: json["view_count"],
-        tags: List<String>.from(json["tags"].map((x) => x)),
-        author: Author.fromJson(json["author"]),
-        createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
-        updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
+        viewCount: json["view_count"] ?? 0,
+        tags: json["tags"] != null ? List<String>.from(json["tags"].map((x) => x.toString())) : [],
+        author: json["author"] != null ? Author.fromJson(json["author"]) : null,
+        createdAt: json["created_at"] == null ? null : DateTime.tryParse(json["created_at"]),
+        updatedAt: json["updated_at"] == null ? null : DateTime.tryParse(json["updated_at"]),
         isPublished: json["is_published"],
         authorId: json["author_id"],
         seoMetaTitle: json["seo_meta_title"],
         seoMetaDescription: json["seo_meta_description"],
-        seoKeywords: json["seo_keywords"] == null ? null : List<String>.from(json["seo_keywords"].map((x) => x)),
+        seoKeywords: json["seo_keywords"] == null ? null : List<String>.from(json["seo_keywords"].map((x) => x.toString())),
         readMinutes: json["read_minutes"],
       );
 }
@@ -132,8 +136,8 @@ class Author {
   });
 
   factory Author.fromJson(Map<String, dynamic> json) => Author(
-        id: json["id"],
-        name: json["name"],
+        id: json["id"]?.toString() ?? "",
+        name: json["name"]?.toString() ?? "Unknown",
         avatarUrl: json["avatar_url"],
         designation: json["designation"],
         credential: json["credential"],
@@ -142,8 +146,8 @@ class Author {
         twitter: json["twitter"],
         facebook: json["facebook"],
         instagram: json["instagram"],
-        createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
-        updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
+        createdAt: json["created_at"] == null ? null : DateTime.tryParse(json["created_at"]),
+        updatedAt: json["updated_at"] == null ? null : DateTime.tryParse(json["updated_at"]),
       );
 }
 
@@ -161,28 +165,28 @@ class Meta {
   });
 
   factory Meta.fromJson(Map<String, dynamic> json) => Meta(
-        total: json["total"],
-        page: json["page"],
-        limit: json["limit"],
-        totalPages: json["total_pages"],
+        total: json["total"] ?? 0,
+        page: json["page"] ?? 1,
+        limit: json["limit"] ?? 10,
+        totalPages: json["total_pages"] ?? 1,
       );
 }
 
 class ArticleDetailResponse {
   final bool success;
   final String message;
-  final Article data;
+  final Article? data;
 
   ArticleDetailResponse({
     required this.success,
     required this.message,
-    required this.data,
+    this.data,
   });
 
   factory ArticleDetailResponse.fromJson(Map<String, dynamic> json) => ArticleDetailResponse(
-        success: json["success"],
-        message: json["message"],
-        data: Article.fromJson(json["data"]),
+        success: json["success"] ?? false,
+        message: json["message"] ?? "",
+        data: json["data"] != null ? Article.fromJson(json["data"]) : null,
       );
 }
 
@@ -198,8 +202,8 @@ class ArticleTagsResponse {
   });
 
   factory ArticleTagsResponse.fromJson(Map<String, dynamic> json) => ArticleTagsResponse(
-        success: json["success"],
-        message: json["message"],
-        data: List<String>.from(json["data"].map((x) => x)),
+        success: json["success"] ?? false,
+        message: json["message"] ?? "",
+        data: json["data"] != null ? List<String>.from(json["data"].map((x) => x.toString())) : [],
       );
 }

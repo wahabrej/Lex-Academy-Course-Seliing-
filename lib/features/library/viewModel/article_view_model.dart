@@ -60,15 +60,16 @@ class ArticleViewModel extends ChangeNotifier {
       tag: _selectedTag,
     );
 
-    if (response.success) {
+    if (response.success && response.data != null) {
       if (isRefresh) {
-        _articles = response.data.items;
+        _articles = response.data!.items;
       } else {
-        _articles.addAll(response.data.items);
+        _articles.addAll(response.data!.items);
       }
-      _meta = response.data.meta;
+      _meta = response.data!.meta;
     } else {
-      _errorMessage = response.message;
+      _errorMessage = response.message.isNotEmpty ? response.message : "Failed to load articles";
+      if (isRefresh) _articles = [];
     }
     _isLoading = false;
     notifyListeners();
@@ -90,10 +91,17 @@ class ArticleViewModel extends ChangeNotifier {
 
     try {
       final response = await _repository.getArticleDetails(slug);
-      _selectedArticle = response.data;
-      _isDetailLoading = false;
-      notifyListeners();
-      return true;
+      if (response.success && response.data != null) {
+        _selectedArticle = response.data;
+        _isDetailLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.message.isNotEmpty ? response.message : "Failed to load article details";
+        _isDetailLoading = false;
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
       _errorMessage = e.toString();
       _isDetailLoading = false;

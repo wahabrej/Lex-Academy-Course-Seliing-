@@ -3,16 +3,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lexverse/core/routes/routesName.dart';
 
 class EnrolledPackageDashboardScreen extends StatelessWidget {
-  final String? packageName;
-
-  const EnrolledPackageDashboardScreen({
-    super.key,
-    this.packageName,
-  });
+  const EnrolledPackageDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // ১০টি প্রধান মডিউল ম্যাপিং
+    // আর্গুমেন্ট থেকে packageId এবং packageName গ্রহণ করা
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final String packageId = args?['packageId'] ?? '';
+    final String packageName = args?['packageName'] ?? 'প্যাকেজ ড্যাশবোর্ড';
+
     final List<Map<String, dynamic>> modules = [
       {
         'title': 'Exams',
@@ -96,13 +95,15 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'প্যাকেজ ড্যাশবোর্ড',
+          packageName,
           style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
       body: Column(
         children: [
-          _buildPackageHeader(packageName ?? '১৯তম বিজেএস প্রিলি প্রস্তুতি'),
+          _buildPackageHeader(packageName),
           Expanded(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -131,6 +132,7 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
                     module['icon'],
                     module['color'],
                     module['route'],
+                    packageId,
                   );
                 },
               ),
@@ -150,29 +152,26 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFFF5B301),
-              borderRadius: BorderRadius.circular(6.r),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: Text(
+            child: const Text(
               'ENROLLED',
-              style: TextStyle(color: const Color(0xFF072B3E), fontSize: 10.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Color(0xFF072B3E), fontSize: 10, fontWeight: FontWeight.bold),
             ),
           ),
           SizedBox(height: 12.h),
           Text(
             name,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              height: 1.3,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold, height: 1.3),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           SizedBox(height: 8.h),
           Text(
-            'মেয়াদ: ১৯তম বিজেএস প্রিলি পরীক্ষা পর্যন্ত',
+            'আপনার সকল মডিউল নিচে দেওয়া হলো',
             style: TextStyle(color: Colors.white70, fontSize: 12.sp),
           ),
         ],
@@ -180,28 +179,23 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildModuleCard(BuildContext context, String title, String subtitle, IconData icon, Color color, String? route) {
+  Widget _buildModuleCard(BuildContext context, String title, String subtitle, IconData icon, Color color, String? route, String packageId) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
             if (route != null) {
-              Navigator.pushNamed(context, route);
+              // প্রতিটি মডিউলে যাওয়ার সময় packageId আর্গুমেন্ট হিসেবে পাঠানো হচ্ছে
+              Navigator.pushNamed(context, route, arguments: {'packageId': packageId});
             }
           },
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(16.r),
           child: Padding(
             padding: EdgeInsets.all(12.r),
             child: Column(
@@ -219,20 +213,12 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
                 const Spacer(),
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF072B3E),
-                  ),
+                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E)),
                 ),
                 SizedBox(height: 2.h),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    color: Colors.grey[600],
-                    height: 1.2,
-                  ),
+                  style: TextStyle(fontSize: 9.sp, color: Colors.grey[600], height: 1.2),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

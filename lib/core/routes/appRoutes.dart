@@ -18,7 +18,7 @@ import '../../features/AllPackages/view/routine_screen.dart';
 import '../../features/AllPackages/view/suggestion_screen.dart';
 import '../../features/AllPackages/view/syllabus_screen.dart';
 import '../../features/AllPackages/view/question_bank_screen.dart';
-import '../../features/AllPackages/view/enrolled_package_dashboard_screen.dart';
+import '../../features/home/view/enrolledPackageDashboardScreen.dart';
 import '../../features/auth/ReadyToGo/view/ReadyToGoScreen.dart';
 import '../../features/auth/login/view/loginScreen.dart';
 import '../../features/auth/signup/view/signUpScreen.dart';

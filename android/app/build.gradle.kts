@@ -5,8 +5,8 @@ plugins {
 }
 
 android {
-    namespace = "com.lexverse.app"
-    compileSdk = 36 // Updated from 34 to fix build issues with media3 and other plugins
+    namespace = "com.example.lexverse" 
+    compileSdk = 36 // Updated to 36 as required by your plugins
 
     ndkVersion = flutter.ndkVersion
 
@@ -20,9 +20,9 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.lexverse.app"
-        minSdk = flutter.minSdkVersion 
-        targetSdk = 36 // Updated from 34 to match compileSdk 36
+        applicationId = "com.example.lexverse"
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36 // Updated to 36 to match compileSdk
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

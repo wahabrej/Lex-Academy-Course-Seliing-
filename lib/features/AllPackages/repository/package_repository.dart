@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constant/ApiEndPoint.dart';
@@ -106,13 +107,33 @@ class PackageRepository {
         'page': page.toString(),
         'limit': limit.toString(),
       });
+      
+      debugPrint("📡 [PackageRepo] GET Request: $uri");
       final response = await http.get(uri, headers: headers);
+      
+      // Full log for debugging the structure
+      dev.log("📦 [PackageRepo] Full Response Body: ${response.body}");
+
       if (response.statusCode == 200) {
         return PackageAccessListResponse.fromJson(jsonDecode(response.body));
       }
       return PackageAccessListResponse(success: false, message: 'Error: ${response.statusCode}', items: [], total: 0, page: page, limit: limit, totalPages: 0);
     } catch (e) {
+      debugPrint("❌ [PackageRepo] Exception: $e");
       return PackageAccessListResponse(success: false, message: e.toString(), items: [], total: 0, page: page, limit: limit, totalPages: 0);
+    }
+  }
+
+  Future<Map<String, dynamic>> getPackagePerformance(String packageId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse(ApiEndPoint.userPerformance(packageId)), headers: headers);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return {"success": false};
+    } catch (e) {
+      return {"success": false};
     }
   }
 }

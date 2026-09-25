@@ -1,281 +1,205 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:lexverse/core/routes/routesName.dart';
+import '../../AllPackages/viewModel/package_view_model.dart';
+import '../../AllPackages/model/package_model.dart';
 
-class AllPackageScreen extends StatelessWidget {
+class AllPackageScreen extends StatefulWidget {
   const AllPackageScreen({super.key});
 
   @override
+  State<AllPackageScreen> createState() => _AllPackageScreenState();
+}
+
+class _AllPackageScreenState extends State<AllPackageScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vm = context.read<PackageViewModel>();
+      vm.fetchPackageCatalog();
+      vm.fetchEnrolledPackages();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final packageVm = context.watch<PackageViewModel>();
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Section
-              _buildHeader(context),
-              SizedBox(height: 20.h),
-
-              // Preliminary Packages Section
-              _buildSectionWrapper(
-                title: 'প্রিলিমিনারি প্যাকেজ',
-                subtitle: 'MCQ / Preliminary প্রস্তুতির প্যাকেজ',
-                countText: '৩টি',
-                child: Column(
-                  children: [
-                    _buildDarkPackageCard(context),
-                    SizedBox(height: 16.h),
-                    _buildDarkPackageCard(context),
-                    SizedBox(height: 16.h),
-                    _buildDarkPackageCard(context),
-                  ],
-                ),
-              ),
-              SizedBox(height: 20.h),
-
-              // Written Packages Section
-              _buildSectionWrapper(
-                title: 'রিটেন প্যাকেজ',
-                subtitle: 'Written exam প্রস্তুতির প্যাকেজ',
-                countText: '১ টি',
-                child: _buildYellowPackageCard(context),
-              ),
-              SizedBox(height: 20.h),
-            ],
-          ),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF072B3E),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
-      ),
-    );
-  }
-
-  // Header Widget
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            InkWell(
-              onTap: () => Navigator.pop(context),
-              borderRadius: BorderRadius.circular(12.r),
-              child: Container(
-                padding: EdgeInsets.all(10.r),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18.r,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            SizedBox(width: 12.w),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'BJS Packages',
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F2C43),
-                  ),
-                ),
-                Text(
-                  'Bangladesh Judicial Service',
-                  style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
-                ),
-              ],
-            ),
+        title: Text(
+          'Packages Hub',
+          style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: const Color(0xFFFFC107),
+          labelColor: const Color(0xFFFFC107),
+          unselectedLabelColor: Colors.white70,
+          tabs: const [
+            Tab(text: 'Catalog'),
+            Tab(text: 'My Access'),
           ],
         ),
-        Container(
-          padding: EdgeInsets.all(10.r),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: Icon(
-            Icons.notifications_none_rounded,
-            size: 20.r,
-            color: Colors.black,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Section Wrapper Widget (Grey Background Block)
-  Widget _buildSectionWrapper({
-    required String title,
-    required String subtitle,
-    required String countText,
-    required Widget child,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(14.r),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF4F5F7),
-        borderRadius: BorderRadius.circular(20.r),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F2C43),
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFC107),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Text(
-                  countText,
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 2.h),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
-          ),
-          SizedBox(height: 14.h),
-          child,
+          _buildCatalogTab(packageVm),
+          _buildMyAccessTab(packageVm),
         ],
       ),
     );
   }
 
-  // Dark Package Card (Preliminary)
-  Widget _buildDarkPackageCard(BuildContext context) {
+  Widget _buildCatalogTab(PackageViewModel vm) {
+    final catalogPackages = vm.catalog?.getAllPreliminary() ?? [];
+
+    if (vm.isLoading && catalogPackages.isEmpty) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF072B3E)));
+    }
+    
+    return RefreshIndicator(
+      onRefresh: () => vm.fetchPackageCatalog(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(16.r),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle('Available Batches'),
+            SizedBox(height: 12.h),
+            if (catalogPackages.isEmpty && !vm.isLoading)
+              const Center(child: Text('No packages available in catalog.'))
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: catalogPackages.length,
+                separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                itemBuilder: (context, index) {
+                  return _buildCatalogPackageCard(context, catalogPackages[index]);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMyAccessTab(PackageViewModel vm) {
+    if (vm.isLoading && vm.enrolledPackages.isEmpty) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF072B3E)));
+    }
+    
+    if (vm.enrolledPackages.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inventory_2_outlined, size: 64.r, color: Colors.grey[300]),
+            SizedBox(height: 16.h),
+            Text('আপনার কোনো কেনা প্যাকেজ নেই', style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => vm.fetchEnrolledPackages(),
+      child: ListView.separated(
+        padding: EdgeInsets.all(16.r),
+        itemCount: vm.enrolledPackages.length,
+        separatorBuilder: (_, __) => SizedBox(height: 16.h),
+        itemBuilder: (context, index) {
+          return _buildEnrolledPackageCard(context, vm.enrolledPackages[index]);
+        },
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E)));
+  }
+
+  Widget _buildCatalogPackageCard(BuildContext context, PackageItem package) {
     return Container(
       padding: EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0B253A),
-        borderRadius: BorderRadius.circular(16.r),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFF0B253A), borderRadius: BorderRadius.circular(16.r)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Badge Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Text(
-                  'BJS - Preliminary',
-                  style: TextStyle(
-                    color: const Color(0xFF0B253A),
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20.r)),
+                child: Text(package.program.toUpperCase(), style: TextStyle(color: const Color(0xFF0B253A), fontSize: 10.sp, fontWeight: FontWeight.bold)),
               ),
-              Row(
-                children: [
-                  Icon(
-                    Icons.shield,
-                    color: const Color(0xFFFFC107),
-                    size: 14.r,
-                  ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'Premium',
-                    style: TextStyle(
-                      color: const Color(0xFFFFC107),
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+              const Icon(Icons.star, color: Color(0xFFFFC107), size: 16),
             ],
           ),
           SizedBox(height: 12.h),
-
-          // Title
-          Text(
-            '১৯তম বিজেএস প্রিলি পরীক্ষার প্রস্তুতি,ফেব্রুয়ারি',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              height: 1.3,
-            ),
-          ),
-          SizedBox(height: 12.h),
-
-          // Price
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '৳ ১০৫০',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                '/ সম্পূর্ণ প্যাকেজ',
-                style: TextStyle(color: Colors.white70, fontSize: 11.sp),
-              ),
-            ],
-          ),
+          Text(package.title, style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold, height: 1.3)),
           SizedBox(height: 14.h),
-
-          // Buttons
-          _buildOutlineButton(
-            context: context,
+          Text('৳ ${package.discountPrice ?? package.price}', style: TextStyle(color: const Color(0xFFFFC107), fontSize: 18.sp, fontWeight: FontWeight.bold)),
+          SizedBox(height: 16.h),
+          _buildActionButton(
             title: 'বিস্তারিত',
+            bgColor: const Color(0xFFFFC107),
+            textColor: Colors.black,
             onTap: () {
-              Navigator.pushNamed(context, RouteName.packageDetailScreen);
+              Navigator.pushNamed(context, RouteName.packageDetailScreen, arguments: package.id);
             },
           ),
-          SizedBox(height: 8.h),
-          _buildOutlineButton(
-            context: context,
-            title: 'রুটিন',
-            onTap: () {
-              Navigator.pushNamed(context, RouteName.packageRoutineScreen);
-            },
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnrolledPackageCard(BuildContext context, EnrolledPackageItem package) {
+    return Container(
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(color: const Color(0xFF072B3E), borderRadius: BorderRadius.circular(16.r)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(4.r)),
+                child: Text('ENROLLED', style: TextStyle(color: Colors.white, fontSize: 9.sp, fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
-          SizedBox(height: 8.h),
-          _buildFilledButton(
+          SizedBox(height: 12.h),
+          Text(package.title, style: TextStyle(color: Colors.white, fontSize: 15.sp, fontWeight: FontWeight.bold, height: 1.4)),
+          SizedBox(height: 16.h),
+          _buildActionButton(
             title: 'প্যাকেজে প্রবেশ করুন',
             bgColor: const Color(0xFFFFC107),
             textColor: Colors.black,
             onTap: () {
-              // সরাসরি এনরোলড প্যাকেজ ড্যাশবোর্ডে নিয়ে যাবে
-              Navigator.pushNamed(context, RouteName.enrolledPackageDashboard);
+              Navigator.pushNamed(
+                context, 
+                RouteName.enrolledPackageDashboard,
+                arguments: {'packageId': package.id, 'packageName': package.title}
+              );
             },
           ),
         ],
@@ -283,191 +207,14 @@ class AllPackageScreen extends StatelessWidget {
     );
   }
 
-  // Yellow Package Card (Written)
-  Widget _buildYellowPackageCard(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFC107),
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Badge Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Text(
-                  'BJS - Written',
-                  style: TextStyle(
-                    color: const Color(0xFF0B253A),
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Row(
-                children: [
-                  Icon(
-                    Icons.shield,
-                    color: const Color(0xFF0B253A),
-                    size: 14.r,
-                  ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'Premium',
-                    style: TextStyle(
-                      color: const Color(0xFF0B253A),
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-
-          // Title
-          Text(
-            '১৯তম বিজেএস প্রিলি পরীক্ষার প্রস্তুতি,ফেব্রুয়ারি',
-            style: TextStyle(
-              color: const Color(0xFF0B253A),
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              height: 1.3,
-            ),
-          ),
-          SizedBox(height: 12.h),
-
-          // Price
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '৳ ২০০০',
-                style: TextStyle(
-                  color: const Color(0xFF0B253A),
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                '/ সম্পূর্ণ প্যাকেজ',
-                style: TextStyle(
-                  color: const Color(0xFF0B253A).withOpacity(0.8),
-                  fontSize: 11.sp,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 14.h),
-
-          // Buttons
-          _buildOutlineButton(
-            title: 'বিস্তারিত',
-            borderColor: const Color(0xFF0B253A),
-            textColor: const Color(0xFF0B253A),
-            onTap: () {
-              Navigator.pushNamed(context, RouteName.packageDetailScreen);
-            },
-          ),
-          SizedBox(height: 8.h),
-          _buildFilledButton(
-            title: 'প্যাকেজে প্রবেশ করুন',
-            bgColor: const Color(0xFF0B253A),
-            textColor: Colors.white,
-            onTap: () {
-              // সরাসরি এনরোলড প্যাকেজ ড্যাশবোর্ডে নিয়ে যাবে
-              Navigator.pushNamed(context, RouteName.enrolledPackageDashboard);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper Widget: Outline Button with Arrow
-  Widget _buildOutlineButton({
-    BuildContext? context,
-    required String title,
-    Color borderColor = Colors.white38,
-    Color textColor = Colors.white,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildActionButton({required String title, required Color bgColor, required Color textColor, required VoidCallback onTap}) {
     return SizedBox(
       width: double.infinity,
-      height: 38.h,
-      child: OutlinedButton(
-        onPressed: onTap,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: borderColor, width: 1.w),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(width: 6.w),
-            Icon(Icons.arrow_forward, color: textColor, size: 14.r),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper Widget: Filled Button with Arrow
-  Widget _buildFilledButton({
-    required String title,
-    required Color bgColor,
-    required Color textColor,
-    required VoidCallback onTap,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 38.h,
+      height: 40.h,
       child: ElevatedButton(
         onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: bgColor,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(width: 6.w),
-            Icon(Icons.arrow_forward, color: textColor, size: 14.r),
-          ],
-        ),
+        style: ElevatedButton.styleFrom(backgroundColor: bgColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)), elevation: 0),
+        child: Text(title, style: TextStyle(color: textColor, fontSize: 12.sp, fontWeight: FontWeight.bold)),
       ),
     );
   }

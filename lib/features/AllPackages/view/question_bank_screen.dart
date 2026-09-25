@@ -14,10 +14,18 @@ class QuestionBankScreen extends StatelessWidget {
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.all(16.w),
-              itemCount: 5,
+              itemCount: 8,
               separatorBuilder: (context, index) => SizedBox(height: 12.h),
               itemBuilder: (context, index) {
-                return _buildQBankCard(context);
+                return _buildModernListCard(
+                  context: context,
+                  title: 'বিজেএস প্রিলিমিনারি প্রশ্নব্যাংক - সেট $index',
+                  subtitle: 'Subject: Civil Procedure Code • Year: 2024',
+                  tag: 'PRELIMINARY',
+                  icon: Icons.quiz_rounded,
+                  color: Colors.purple,
+                  onTap: () => _showDetailSheet(context, 'বিজেএস প্রিলিমিনারি প্রশ্নব্যাংক', 'Civil Procedure Code এর বিগত ১০ বছরের সকল প্রশ্নের ব্যাখ্যাসহ সমাধান এখানে দেওয়া হয়েছে।'),
+                );
               },
             ),
           ),
@@ -31,10 +39,7 @@ class QuestionBankScreen extends StatelessWidget {
       width: double.infinity,
       decoration: const BoxDecoration(
         color: Color(0xFF072B3E),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
       ),
       child: SafeArea(
         bottom: false,
@@ -59,34 +64,86 @@ class QuestionBankScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQBankCard(BuildContext context) {
+  Widget _buildModernListCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required String tag,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(12.r),
-            decoration: BoxDecoration(color: const Color(0xFFF3E5F5), borderRadius: BorderRadius.circular(12.r)),
-            child: Icon(Icons.quiz_rounded, color: Colors.purple, size: 24.r),
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16.r),
+          child: Padding(
+            padding: EdgeInsets.all(16.r),
+            child: Row(
               children: [
-                Text('বিজেএস প্রিলিমিনারি প্রশ্নব্যাংক', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E))),
-                SizedBox(height: 4.h),
-                Text('Subject: Civil Procedure Code', style: TextStyle(fontSize: 11.sp, color: Colors.grey[600])),
+                Container(
+                  padding: EdgeInsets.all(12.r),
+                  decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12.r)),
+                  child: Icon(icon, color: color, size: 24.r),
+                ),
+                SizedBox(width: 16.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                        decoration: BoxDecoration(color: const Color(0xFFF4F5F8), borderRadius: BorderRadius.circular(6.r)),
+                        child: Text(tag, style: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.bold, color: color)),
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E))),
+                      SizedBox(height: 4.h),
+                      Text(subtitle, style: TextStyle(fontSize: 11.sp, color: Colors.grey[600])),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios_rounded, size: 14.r, color: Colors.grey[400]),
               ],
             ),
           ),
-          Icon(Icons.download_for_offline_outlined, color: const Color(0xFF072B3E), size: 22.r),
-        ],
+        ),
+      ),
+    );
+  }
+
+  void _showDetailSheet(BuildContext context, String title, String description) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => Padding(
+        padding: EdgeInsets.all(24.r),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E))),
+            SizedBox(height: 16.h),
+            Text(description, style: TextStyle(fontSize: 14.sp, color: Colors.grey[700], height: 1.5)),
+            SizedBox(height: 24.h),
+            SizedBox(
+              width: double.infinity,
+              height: 48.h,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF072B3E), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
+                child: const Text('পড়া শুরু করুন', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

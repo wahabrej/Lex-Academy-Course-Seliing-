@@ -1,28 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import '../viewModel/syllabus_view_model.dart';
 
-class SyllabusScreen extends StatelessWidget {
-  const SyllabusScreen({super.key});
+class SyllabusScreen extends StatefulWidget {
+  final String packageId;
+  const SyllabusScreen({super.key, this.packageId = "204259de-0306-4e04-98d6-8e15ab9ad783"});
+
+  @override
+  State<SyllabusScreen> createState() => _SyllabusScreenState();
+}
+
+class _SyllabusScreenState extends State<SyllabusScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchSyllabuses();
+    });
+  }
+
+  void _fetchSyllabuses() {
+    Provider.of<SyllabusViewModel>(context, listen: false)
+        .fetchSyllabuses(packageId: widget.packageId);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final syllabusVm = Provider.of<SyllabusViewModel>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
         children: [
           _buildHeader(context, 'Package Syllabus'),
           Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.all(16.w),
-              itemCount: 3,
-              separatorBuilder: (context, index) => SizedBox(height: 12.h),
-              itemBuilder: (context, index) {
-                return _buildSyllabusCard(
-                  title: index == 0 ? 'প্রিলিমিনারি সিলেবাস (MCQ)' : 'লিখিত পরীক্ষার পূর্ণাঙ্গ সিলেবাস',
-                  description: 'বাংলাদেশ জুডিশিয়াল সার্ভিস (বিজেএস) পরীক্ষার জন্য নির্ধারিত পাঠ্যসূচি।',
-                );
-              },
-            ),
+            child: syllabusVm.isLoading
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF072B3E)))
+                : syllabusVm.errorMessage != null
+                    ? _buildErrorWidget(syllabusVm)
+                    : RefreshIndicator(
+                        onRefresh: () async => _fetchSyllabuses(),
+                        child: syllabusVm.syllabuses.isEmpty
+                            ? _buildEmptyWidget()
+                            : ListView.separated(
+                                padding: EdgeInsets.all(16.w),
+                                itemCount: syllabusVm.syllabuses.length,
+                                separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                                itemBuilder: (context, index) {
+                                  final syllabus = syllabusVm.syllabuses[index];
+                                  return _buildSyllabusCard(
+                                    title: syllabus.title,
+                                    description: syllabus.content ?? 'বিস্তারিত তথ্য দেখার জন্য ক্লিক করুন।',
+                                  );
+                                },
+                              ),
+                      ),
           ),
         ],
       ),
@@ -86,6 +119,41 @@ class SyllabusScreen extends StatelessWidget {
             ),
           ),
           const Icon(Icons.remove_red_eye_outlined, color: Colors.teal),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget(SyllabusViewModel vm) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, color: Colors.red, size: 48.sp),
+          SizedBox(height: 16.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32.w),
+            child: Text(vm.errorMessage!, style: TextStyle(color: Colors.red, fontSize: 14.sp), textAlign: TextAlign.center),
+          ),
+          SizedBox(height: 16.h),
+          ElevatedButton(
+            onPressed: _fetchSyllabuses,
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF072B3E)),
+            child: const Text('Retry', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.book_outlined, color: Colors.grey, size: 48.sp),
+          SizedBox(height: 16.h),
+          Text('No syllabuses found.', style: TextStyle(color: Colors.grey, fontSize: 14.sp)),
         ],
       ),
     );
