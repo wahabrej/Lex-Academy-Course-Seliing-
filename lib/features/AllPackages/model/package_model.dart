@@ -3,7 +3,11 @@ class PackageCatalogResponse {
   final String message;
   final PackageCatalogData data;
 
-  PackageCatalogResponse({required this.success, required this.message, required this.data});
+  PackageCatalogResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
 
   factory PackageCatalogResponse.fromJson(Map<String, dynamic> json) {
     return PackageCatalogResponse(
@@ -43,13 +47,29 @@ class PackageProgram {
   final List<PackageItem> preliminary;
   final List<PackageItem> written;
 
-  PackageProgram({required this.general, required this.preliminary, required this.written});
+  PackageProgram({
+    required this.general,
+    required this.preliminary,
+    required this.written,
+  });
 
   factory PackageProgram.fromJson(Map<String, dynamic> json) {
     return PackageProgram(
-      general: (json['general'] as List?)?.map((e) => PackageItem.fromJson(e)).toList() ?? [],
-      preliminary: (json['preliminary'] as List?)?.map((e) => PackageItem.fromJson(e)).toList() ?? [],
-      written: (json['written'] as List?)?.map((e) => PackageItem.fromJson(e)).toList() ?? [],
+      general:
+          (json['general'] as List?)
+              ?.map((e) => PackageItem.fromJson(e))
+              .toList() ??
+          [],
+      preliminary:
+          (json['preliminary'] as List?)
+              ?.map((e) => PackageItem.fromJson(e))
+              .toList() ??
+          [],
+      written:
+          (json['written'] as List?)
+              ?.map((e) => PackageItem.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 }
@@ -104,8 +124,12 @@ class PackageItem {
       batchNumber: json['batch_number'],
       isActive: json['is_active'] ?? false,
       isComingSoon: json['is_coming_soon'] ?? false,
-      batchStartedAt: json['batch_started_at'] != null ? DateTime.tryParse(json['batch_started_at']) : null,
-      batchEndedAt: json['batch_ended_at'] != null ? DateTime.tryParse(json['batch_ended_at']) : null,
+      batchStartedAt: json['batch_started_at'] != null
+          ? DateTime.tryParse(json['batch_started_at'])
+          : null,
+      batchEndedAt: json['batch_ended_at'] != null
+          ? DateTime.tryParse(json['batch_ended_at'])
+          : null,
       price: json['price']?.toString(),
       discountPrice: json['discount_price']?.toString(),
       detailsHtml: json['details_html'],
@@ -133,19 +157,29 @@ class PackageAccessListResponse {
   });
 
   factory PackageAccessListResponse.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] ?? {};
-    final itemsList = (data['items'] as List? ?? [])
-        .map((e) => PackageAccessItem.fromJson(e as Map<String, dynamic>))
+    final rawData = json['data'];
+    final data = rawData is Map
+        ? Map<String, dynamic>.from(rawData)
+        : <String, dynamic>{};
+    final rawItems = data['items'];
+    final itemsList = (rawItems is List ? rawItems : const [])
+        .whereType<Map>()
+        .map(
+          (item) => PackageAccessItem.fromJson(Map<String, dynamic>.from(item)),
+        )
         .toList();
 
     return PackageAccessListResponse(
-      success: json['success'] ?? false,
-      message: json['message'] ?? '',
+      success: json['success'] == true,
+      message: json['message']?.toString() ?? '',
       items: itemsList,
-      total: data['total'] ?? 0,
-      page: data['page'] ?? 1,
-      limit: data['limit'] ?? 10,
-      totalPages: data['totalPages'] ?? data['total_pages'] ?? 0,
+      total: _parseInt(data['total'], fallback: 0),
+      page: _parseInt(data['page'], fallback: 1),
+      limit: _parseInt(data['limit'], fallback: 10),
+      totalPages: _parseInt(
+        data['totalPages'] ?? data['total_pages'],
+        fallback: 0,
+      ),
     );
   }
 }
@@ -178,66 +212,112 @@ class PackageAccessItem {
   });
 
   factory PackageAccessItem.fromJson(Map<String, dynamic> json) {
-    // এপিআই রেসপন্স অনুযায়ী সরাসরি ফিল্ডগুলো পড়া হচ্ছে (Flat structure)
     return PackageAccessItem(
       accessId: json['access_id']?.toString() ?? '',
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? 'Untitled Package',
-      subtitle: json['subtitle'],
+      subtitle: json['subtitle']?.toString(),
       program: json['program']?.toString() ?? '',
       track: json['track']?.toString() ?? '',
       duration: json['duration']?.toString(),
-      batchStartedAt: json['batch_started_at'] != null ? DateTime.tryParse(json['batch_started_at']) : null,
-      batchEndedAt: json['batch_ended_at'] != null ? DateTime.tryParse(json['batch_ended_at']) : null,
-      status: json['status']?.toString() ?? 'active',
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
+      batchStartedAt: _parseDate(json['batch_started_at']),
+      batchEndedAt: _parseDate(json['batch_ended_at']),
+      status: json['status']?.toString(),
+      createdAt: _parseDate(json['created_at']),
     );
   }
+}
+
+int _parseInt(Object? value, {required int fallback}) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? fallback;
+}
+
+DateTime? _parseDate(Object? value) {
+  if (value is DateTime) return value;
+  return value is String ? DateTime.tryParse(value) : null;
 }
 
 class EnrolledPackageItem {
   final String id;
   final String title;
   EnrolledPackageItem({required this.id, required this.title});
-  factory EnrolledPackageItem.fromJson(Map<String, dynamic> json) => EnrolledPackageItem(id: json['id'] ?? '', title: json['title'] ?? '');
+  factory EnrolledPackageItem.fromJson(Map<String, dynamic> json) =>
+      EnrolledPackageItem(id: json['id'] ?? '', title: json['title'] ?? '');
 }
 
 class EnrolledPackagesResponse {
   final bool success;
   final String message;
   final List<EnrolledPackageItem> items;
-  EnrolledPackagesResponse({required this.success, required this.message, required this.items});
-  factory EnrolledPackagesResponse.fromJson(Map<String, dynamic> json) => EnrolledPackagesResponse(
-    success: json['success'] ?? false,
-    message: json['message'] ?? '',
-    items: (json['data']?['items'] as List?)?.map((e) => EnrolledPackageItem.fromJson(e)).toList() ?? [],
-  );
+  EnrolledPackagesResponse({
+    required this.success,
+    required this.message,
+    required this.items,
+  });
+  factory EnrolledPackagesResponse.fromJson(Map<String, dynamic> json) =>
+      EnrolledPackagesResponse(
+        success: json['success'] ?? false,
+        message: json['message'] ?? '',
+        items:
+            (json['data']?['items'] as List?)
+                ?.map((e) => EnrolledPackageItem.fromJson(e))
+                .toList() ??
+            [],
+      );
 }
 
 class PackageDetailResponse {
   final bool success;
   final String message;
   final PackageItem? data;
-  PackageDetailResponse({required this.success, required this.message, this.data});
-  factory PackageDetailResponse.fromJson(Map<String, dynamic> json) => PackageDetailResponse(success: json['success'] ?? false, message: json['message'] ?? '', data: json['data'] != null ? PackageItem.fromJson(json['data']) : null);
+  PackageDetailResponse({
+    required this.success,
+    required this.message,
+    this.data,
+  });
+  factory PackageDetailResponse.fromJson(Map<String, dynamic> json) =>
+      PackageDetailResponse(
+        success: json['success'] ?? false,
+        message: json['message'] ?? '',
+        data: json['data'] != null ? PackageItem.fromJson(json['data']) : null,
+      );
 }
 
 class ProgramSummary {
   final int liveExamCount;
   final DateTime? nextUpcomingDate;
   ProgramSummary({required this.liveExamCount, this.nextUpcomingDate});
-  factory ProgramSummary.fromJson(Map<String, dynamic> json) => ProgramSummary(liveExamCount: json['live_exam_count'] ?? 0, nextUpcomingDate: json['next_upcoming_date'] != null ? DateTime.tryParse(json['next_upcoming_date']) : null);
+  factory ProgramSummary.fromJson(Map<String, dynamic> json) => ProgramSummary(
+    liveExamCount: json['live_exam_count'] ?? 0,
+    nextUpcomingDate: json['next_upcoming_date'] != null
+        ? DateTime.tryParse(json['next_upcoming_date'])
+        : null,
+  );
 }
 
 class LiveExamsSummaryResponse {
   final bool success;
   final String message;
   final Map<String, ProgramSummary> data;
-  LiveExamsSummaryResponse({required this.success, required this.message, required this.data});
+  LiveExamsSummaryResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
   factory LiveExamsSummaryResponse.fromJson(Map<String, dynamic> json) {
     Map<String, ProgramSummary> summaryMap = {};
-    if (json['data'] != null) { (json['data'] as Map).forEach((key, value) { summaryMap[key] = ProgramSummary.fromJson(value); }); }
-    return LiveExamsSummaryResponse(success: json['success'] ?? false, message: json['message'] ?? '', data: summaryMap);
+    if (json['data'] != null) {
+      (json['data'] as Map).forEach((key, value) {
+        summaryMap[key] = ProgramSummary.fromJson(value);
+      });
+    }
+    return LiveExamsSummaryResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      data: summaryMap,
+    );
   }
 }
 
@@ -245,14 +325,32 @@ class PackageAccessCounts {
   final int active;
   final int requests;
   final int history;
-  PackageAccessCounts({required this.active, required this.requests, required this.history});
-  factory PackageAccessCounts.fromJson(Map<String, dynamic> json) => PackageAccessCounts(active: json['active'] ?? 0, requests: json['requests'] ?? 0, history: json['history'] ?? 0);
+  PackageAccessCounts({
+    required this.active,
+    required this.requests,
+    required this.history,
+  });
+  factory PackageAccessCounts.fromJson(Map<String, dynamic> json) =>
+      PackageAccessCounts(
+        active: json['active'] ?? 0,
+        requests: json['requests'] ?? 0,
+        history: json['history'] ?? 0,
+      );
 }
 
 class PackageAccessCountsResponse {
   final bool success;
   final String message;
   final PackageAccessCounts data;
-  PackageAccessCountsResponse({required this.success, required this.message, required this.data});
-  factory PackageAccessCountsResponse.fromJson(Map<String, dynamic> json) => PackageAccessCountsResponse(success: json['success'] ?? false, message: json['message'] ?? '', data: PackageAccessCounts.fromJson(json['data'] ?? {}));
+  PackageAccessCountsResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+  factory PackageAccessCountsResponse.fromJson(Map<String, dynamic> json) =>
+      PackageAccessCountsResponse(
+        success: json['success'] ?? false,
+        message: json['message'] ?? '',
+        data: PackageAccessCounts.fromJson(json['data'] ?? {}),
+      );
 }

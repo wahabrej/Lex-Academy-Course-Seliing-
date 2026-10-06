@@ -267,14 +267,61 @@ class _MyAccessTabViewState extends State<_MyAccessTabView> {
                 )
               : viewModel.accessList.isEmpty
               ? _buildEmptyState()
-              : ListView.separated(
-                  padding: EdgeInsets.all(16.w),
-                  itemCount: viewModel.accessList.length,
-                  separatorBuilder: (_, __) => SizedBox(height: 12.h),
-                  itemBuilder: (context, i) {
-                    final item = viewModel.accessList[i];
-                    return _AccessTile(item: item);
+              : NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    if (notification.metrics.extentAfter < 250 &&
+                        viewModel.hasMoreAccess &&
+                        !viewModel.isLoadingMoreAccess) {
+                      viewModel.fetchNextAccessPage();
+                    }
+                    return false;
                   },
+                  child: ListView.separated(
+                    padding: EdgeInsets.all(16.w),
+                    itemCount:
+                        viewModel.accessList.length +
+                        (viewModel.hasMoreAccess ? 1 : 0),
+                    separatorBuilder: (_, __) => SizedBox(height: 12.h),
+                    itemBuilder: (context, i) {
+                      if (i == viewModel.accessList.length) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          child: Center(
+                            child: viewModel.accessPaginationError != null
+                                ? Column(
+                                    children: [
+                                      Text(
+                                        'আরও প্যাকেজ লোড করা যায়নি',
+                                        style: TextStyle(
+                                          color: Colors.red.shade700,
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: viewModel
+                                            .fetchNextAccessPage,
+                                        child: const Text('আবার চেষ্টা করুন'),
+                                      ),
+                                    ],
+                                  )
+                                : viewModel.isLoadingMoreAccess
+                                ? const CircularProgressIndicator(
+                                    color: Color(0xFF072B3E),
+                                  )
+                                : Text(
+                                    '${viewModel.accessList.length} / ${viewModel.accessTotal} টি প্যাকেজ দেখানো হচ্ছে · আরও দেখতে স্ক্রল করুন',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 12.sp,
+                                    ),
+                                  ),
+                          ),
+                        );
+                      }
+                      final item = viewModel.accessList[i];
+                      return _AccessTile(item: item, activeTab: _activeTab);
+                    },
+                  ),
                 ),
         ),
       ],
@@ -450,16 +497,18 @@ class _PackageCard extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────
 class _AccessTile extends StatelessWidget {
   final PackageAccessItem item;
-  const _AccessTile({required this.item});
+  final String activeTab;
+  const _AccessTile({required this.item, required this.activeTab});
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _getStatusColor(item.status ?? 'active');
-    final statusText = (item.status ?? 'active').toUpperCase();
+    final status = item.status?.toLowerCase() ?? activeTab;
+    final statusColor = _getStatusColor(status);
+    final statusText = status.toUpperCase();
 
     return InkWell(
       onTap: () {
-        if (item.status?.toLowerCase() == 'active') {
+        if (status == 'active') {
           Navigator.pushNamed(
             context,
             RouteName.enrolledPackageDashboard,
@@ -474,7 +523,7 @@ class _AccessTile extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'আপনার অ্যাক্সেস রিকোয়েস্টটি ${item.status?.toUpperCase() ?? "PENDING"} আছে।',
+                'আপনার অ্যাক্সেস রিকোয়েস্টটি ${status.toUpperCase()} আছে।',
               ),
             ),
           );
@@ -502,23 +551,17 @@ class _AccessTile extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Track Badge
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF072B3E).withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                  child: Text(
-                    item.track.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 9.sp,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF072B3E),
-                    ),
+                Expanded(
+                  child: Wrap(
+                    spacing: 6.w,
+                    children: [
+                      if (item.program.isNotEmpty)
+                        _buildTag(item.program.toUpperCase()),
+                      if (item.track.isNotEmpty)
+                        _buildTag(item.track.toUpperCase()),
+                    ],
                   ),
                 ),
-
                 // Status Badge
                 Container(
                   padding: EdgeInsets.symmetric(
@@ -556,9 +599,16 @@ class _AccessTile extends StatelessWidget {
               ],
             ),
 
+            if (item.subtitle?.isNotEmpty == true) ...[
+              SizedBox(height: 8.h),
+              Text(
+                item.subtitle!,
+                style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade600),
+              ),
+            ],
+
             SizedBox(height: 10.h),
 
-            // ── Title ──
             Text(
               item.title,
               style: TextStyle(
@@ -569,37 +619,64 @@ class _AccessTile extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 10.h),
+            if (item.duration?.isNotEmpty == true) ...[
+              SizedBox(height: 6.h),
+              Text(
+                item.duration!,
+                style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade600),
+              ),
+            ],
 
-            // ── Divider ──
-            Divider(height: 1, color: Colors.grey.shade200),
-            SizedBox(height: 10.h),
-
-            // ── Bottom Info Row ──
-            Row(
-              children: [
-                // Requested Date
-                if (item.createdAt != null)
-                  Expanded(
-                    child: _buildInfoItem(
+            if (item.createdAt != null ||
+                item.batchStartedAt != null ||
+                item.batchEndedAt != null) ...[
+              SizedBox(height: 10.h),
+              Divider(height: 1, color: Colors.grey.shade200),
+              SizedBox(height: 10.h),
+              Wrap(
+                spacing: 12.w,
+                runSpacing: 8.h,
+                children: [
+                  if (item.createdAt != null)
+                    _buildInfoItem(
                       icon: Icons.calendar_today_outlined,
                       label: 'Requested',
                       value: _formatDate(item.createdAt),
                     ),
-                  ),
-
-                // Batch Started
-                if (item.batchStartedAt != null)
-                  Expanded(
-                    child: _buildInfoItem(
+                  if (item.batchStartedAt != null)
+                    _buildInfoItem(
                       icon: Icons.play_circle_outline,
                       label: 'Started',
                       value: _formatDate(item.batchStartedAt),
                     ),
-                  ),
-              ],
-            ),
+                  if (item.batchEndedAt != null)
+                    _buildInfoItem(
+                      icon: Icons.flag_outlined,
+                      label: 'Ended',
+                      value: _formatDate(item.batchEndedAt),
+                    ),
+                ],
+              ),
+            ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTag(String value) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF072B3E).withOpacity(0.08),
+        borderRadius: BorderRadius.circular(6.r),
+      ),
+      child: Text(
+        value,
+        style: TextStyle(
+          fontSize: 9.sp,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFF072B3E),
         ),
       ),
     );

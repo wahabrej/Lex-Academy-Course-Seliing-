@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lexverse/features/AllPackages/model/package_content_models.dart';
+import 'package:lexverse/features/AllPackages/model/package_model.dart';
 import 'package:lexverse/features/AllPackages/model/performance_model.dart';
 import 'package:lexverse/features/AllPackages/model/routine_model.dart';
 import 'package:lexverse/features/AllPackages/model/syllabus_model.dart';
@@ -7,6 +8,51 @@ import 'package:lexverse/features/library/model/note_model.dart';
 import 'package:lexverse/features/library/model/question_bank_model.dart';
 
 void main() {
+  group('Package access response models', () {
+    test('parses the access-list response and nullable package fields', () {
+      final response = PackageAccessListResponse.fromJson({
+        'success': true,
+        'message': 'Operation completed successfully',
+        'data': {
+          'items': [
+            {
+              'access_id': 'access-id',
+              'id': 'package-id',
+              'title': 'Tasty Plastic Keyboard Package',
+              'subtitle': null,
+              'program': 'llb',
+              'track': 'written',
+              'duration': null,
+              'batch_started_at': null,
+              'batch_ended_at': null,
+            },
+          ],
+          'total': 32,
+          'page': 1,
+          'limit': 10,
+          'totalPages': 4,
+        },
+      });
+
+      final item = response.items.single;
+      expect(response.success, isTrue);
+      expect(response.total, 32);
+      expect(response.page, 1);
+      expect(response.limit, 10);
+      expect(response.totalPages, 4);
+      expect(item.accessId, 'access-id');
+      expect(item.id, 'package-id');
+      expect(item.title, 'Tasty Plastic Keyboard Package');
+      expect(item.program, 'llb');
+      expect(item.track, 'written');
+      expect(item.subtitle, isNull);
+      expect(item.duration, isNull);
+      expect(item.batchStartedAt, isNull);
+      expect(item.batchEndedAt, isNull);
+      expect(item.status, isNull);
+    });
+  });
+
   group('Routine response models', () {
     test('parses routine stats and nested routine metadata', () {
       final stats = RoutineStatsResponse.fromJson({

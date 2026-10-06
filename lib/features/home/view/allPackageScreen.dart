@@ -25,8 +25,7 @@ class _AllPackageScreenState extends State<AllPackageScreen>
       final vm = context.read<PackageViewModel>();
       // Catalog এর জায়গায় backend এর পরামর্শ অনুযায়ী locked catalog ব্যবহার করা হচ্ছে
       vm.fetchLockedCatalog();
-      // My Access এর জন্য enrolled packages এপিআই ব্যবহার করা হচ্ছে
-      vm.fetchEnrolledPackages();
+      vm.fetchAccessList('active');
     });
   }
 
@@ -114,13 +113,13 @@ class _AllPackageScreenState extends State<AllPackageScreen>
   }
 
   Widget _buildMyAccessTab(PackageViewModel vm) {
-    if (vm.isLoading && vm.enrolledPackages.isEmpty) {
+    if (vm.isLoading && vm.accessList.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFF072B3E)),
       );
     }
 
-    if (vm.enrolledPackages.isEmpty) {
+    if (vm.accessList.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -141,14 +140,58 @@ class _AllPackageScreenState extends State<AllPackageScreen>
     }
 
     return RefreshIndicator(
-      onRefresh: () => vm.fetchEnrolledPackages(),
-      child: ListView.separated(
-        padding: EdgeInsets.all(16.r),
-        itemCount: vm.enrolledPackages.length,
-        separatorBuilder: (_, __) => SizedBox(height: 16.h),
-        itemBuilder: (context, index) {
-          return _buildEnrolledPackageCard(context, vm.enrolledPackages[index]);
+      onRefresh: () => vm.fetchAccessList('active'),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification.metrics.extentAfter < 250 &&
+              vm.hasMoreAccess &&
+              !vm.isLoadingMoreAccess) {
+            vm.fetchNextAccessPage();
+          }
+          return false;
         },
+        child: ListView.separated(
+          padding: EdgeInsets.all(16.r),
+          itemCount: vm.accessList.length + (vm.hasMoreAccess ? 1 : 0),
+          separatorBuilder: (_, __) => SizedBox(height: 16.h),
+          itemBuilder: (context, index) {
+            if (index == vm.accessList.length) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                child: Center(
+                  child: vm.accessPaginationError != null
+                      ? Column(
+                          children: [
+                            Text(
+                              'আরও প্যাকেজ লোড করা যায়নি',
+                              style: TextStyle(
+                                color: Colors.red[700],
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: vm.fetchNextAccessPage,
+                              child: const Text('আবার চেষ্টা করুন'),
+                            ),
+                          ],
+                        )
+                      : vm.isLoadingMoreAccess
+                      ? const CircularProgressIndicator(
+                          color: Color(0xFF072B3E),
+                        )
+                      : Text(
+                          '${vm.accessList.length} / ${vm.accessTotal} টি প্যাকেজ দেখানো হচ্ছে · আরও দেখতে স্ক্রল করুন',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12.sp,
+                          ),
+                        ),
+                ),
+              );
+            }
+            return _buildAccessPackageCard(context, vm.accessList[index]);
+          },
+        ),
       ),
     );
   }
@@ -232,10 +275,11 @@ class _AllPackageScreenState extends State<AllPackageScreen>
     );
   }
 
-  Widget _buildEnrolledPackageCard(
+  Widget _buildAccessPackageCard(
     BuildContext context,
-    EnrolledPackageItem package,
+    PackageAccessItem package,
   ) {
+    final status = package.status?.toLowerCase() ?? 'active';
     return Container(
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
@@ -250,11 +294,11 @@ class _AllPackageScreenState extends State<AllPackageScreen>
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: status == 'active' ? Colors.green : Colors.orange,
                   borderRadius: BorderRadius.circular(4.r),
                 ),
                 child: Text(
-                  'ENROLLED',
+                  status.toUpperCase(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 9.sp,
@@ -262,9 +306,28 @@ class _AllPackageScreenState extends State<AllPackageScreen>
                   ),
                 ),
               ),
+              const Spacer(),
+              Text(
+                [
+                  if (package.program.isNotEmpty) package.program.toUpperCase(),
+                  if (package.track.isNotEmpty) package.track.toUpperCase(),
+                ].join(' · '),
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 12.h),
+          if (package.subtitle?.isNotEmpty == true) ...[
+            Text(
+              package.subtitle!,
+              style: TextStyle(color: Colors.white70, fontSize: 12.sp),
+            ),
+            SizedBox(height: 6.h),
+          ],
           Text(
             package.title,
             style: TextStyle(
@@ -274,18 +337,50 @@ class _AllPackageScreenState extends State<AllPackageScreen>
               height: 1.4,
             ),
           ),
+          if (package.duration?.isNotEmpty == true) ...[
+            SizedBox(height: 8.h),
+            Text(
+              package.duration!,
+              style: TextStyle(color: Colors.white70, fontSize: 12.sp),
+            ),
+          ],
+          if (package.batchStartedAt != null ||
+              package.batchEndedAt != null) ...[
+            SizedBox(height: 8.h),
+            Text(
+              [
+                if (package.batchStartedAt != null)
+                  'শুরু: ${_formatDate(package.batchStartedAt!)}',
+                if (package.batchEndedAt != null)
+                  'শেষ: ${_formatDate(package.batchEndedAt!)}',
+              ].join('  •  '),
+              style: TextStyle(color: Colors.white70, fontSize: 11.sp),
+            ),
+          ],
           SizedBox(height: 16.h),
           _buildActionButton(
             title: 'প্যাকেজে প্রবেশ করুন',
             bgColor: const Color(0xFFFFC107),
             textColor: Colors.black,
             onTap: () {
+              if (status != 'active') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'অ্যাক্সেস স্ট্যাটাস: ${status.toUpperCase()}',
+                    ),
+                  ),
+                );
+                return;
+              }
               Navigator.pushNamed(
                 context,
                 RouteName.enrolledPackageDashboard,
                 arguments: {
                   'packageId': package.id,
                   'packageName': package.title,
+                  'program': package.program,
+                  'track': package.track,
                 },
               );
             },
@@ -294,6 +389,9 @@ class _AllPackageScreenState extends State<AllPackageScreen>
       ),
     );
   }
+
+  String _formatDate(DateTime date) =>
+      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 
   Widget _buildActionButton({
     required String title,

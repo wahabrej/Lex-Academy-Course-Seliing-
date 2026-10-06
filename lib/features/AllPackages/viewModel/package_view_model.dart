@@ -24,6 +24,17 @@ class PackageViewModel extends ChangeNotifier {
   List<PackageAccessItem> _accessList = [];
   List<PackageAccessItem> get accessList => _accessList;
 
+  int _accessPage = 1;
+  int _accessTotalPages = 1;
+  int _accessTotal = 0;
+  String _accessTab = 'active';
+  bool _isLoadingMoreAccess = false;
+  String? _accessPaginationError;
+  bool get isLoadingMoreAccess => _isLoadingMoreAccess;
+  String? get accessPaginationError => _accessPaginationError;
+  bool get hasMoreAccess => _accessPage < _accessTotalPages;
+  int get accessTotal => _accessTotal;
+
   UserPerformanceAnalytics? _performanceData;
   UserPerformanceAnalytics? get performanceData => _performanceData;
 
@@ -104,6 +115,12 @@ class PackageViewModel extends ChangeNotifier {
 
   // 6. Fetch Access List (Active, Requests, History)
   Future<void> fetchAccessList(String tab) async {
+    _accessTab = tab;
+    _accessPage = 1;
+    _accessTotalPages = 1;
+    _accessTotal = 0;
+    _isLoadingMoreAccess = false;
+    _accessPaginationError = null;
     _isLoading = true;
     _errorMessage = null;
     _accessList = []; // Clear list before fetching new data
@@ -114,8 +131,13 @@ class PackageViewModel extends ChangeNotifier {
     try {
       final response = await _repository.getPackageAccessList(tab);
 
+      if (_accessTab != tab) return;
+
       if (response.success) {
         _accessList = response.items;
+        _accessPage = response.page;
+        _accessTotalPages = response.totalPages;
+        _accessTotal = response.total;
         debugPrint(
           "✅ [PackageViewModel] Received ${_accessList.length} access items.",
         );
@@ -134,13 +156,56 @@ class PackageViewModel extends ChangeNotifier {
         debugPrint("❌ [PackageViewModel] API Error: $_errorMessage");
       }
     } catch (e, stacktrace) {
-      _errorMessage = e.toString();
-      debugPrint("💥 [PackageViewModel] Exception: $e");
-      debugPrint("📚 [PackageViewModel] Stacktrace: $stacktrace");
+      if (_accessTab == tab) {
+        _errorMessage = e.toString();
+        debugPrint("💥 [PackageViewModel] Exception: $e");
+        debugPrint("📚 [PackageViewModel] Stacktrace: $stacktrace");
+      }
     }
 
-    _isLoading = false;
+    if (_accessTab == tab) {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchNextAccessPage() async {
+    if (_isLoadingMoreAccess || _accessList.isEmpty || !hasMoreAccess) return;
+
+    final tab = _accessTab;
+    final nextPage = _accessPage + 1;
+    _isLoadingMoreAccess = true;
+    _accessPaginationError = null;
     notifyListeners();
+
+    try {
+      final response = await _repository.getPackageAccessList(
+        tab,
+        page: nextPage,
+      );
+
+      if (_accessTab != tab) return;
+
+      if (response.success) {
+        _accessList = [..._accessList, ...response.items];
+        _accessPage = nextPage;
+        _accessTotalPages = response.totalPages;
+        _accessTotal = response.total;
+      } else {
+        _accessPaginationError = response.message;
+      }
+    } catch (e, stacktrace) {
+      if (_accessTab == tab) {
+        _accessPaginationError = e.toString();
+        debugPrint("💥 [PackageViewModel] Next access page exception: $e");
+        debugPrint("📚 [PackageViewModel] Stacktrace: $stacktrace");
+      }
+    }
+
+    if (_accessTab == tab) {
+      _isLoadingMoreAccess = false;
+      notifyListeners();
+    }
   }
 
   // 7. Fetch Details
