@@ -3,7 +3,11 @@ class RoutineStatsResponse {
   final String message;
   final RoutineStats? data;
 
-  RoutineStatsResponse({required this.success, required this.message, this.data});
+  RoutineStatsResponse({
+    required this.success,
+    required this.message,
+    this.data,
+  });
 
   factory RoutineStatsResponse.fromJson(Map<String, dynamic> json) {
     return RoutineStatsResponse(
@@ -29,10 +33,10 @@ class RoutineStats {
 
   factory RoutineStats.fromJson(Map<String, dynamic> json) {
     return RoutineStats(
-      totalRoutine: json['total_routine'] ?? 0,
-      done: json['done'] ?? 0,
-      remaining: json['remaining'] ?? 0,
-      nextExamDate: json['next_exam_date'],
+      totalRoutine: _asInt(json['total_routine']),
+      done: _asInt(json['done']),
+      remaining: _asInt(json['remaining']),
+      nextExamDate: json['next_exam_date']?.toString(),
     );
   }
 }
@@ -51,20 +55,24 @@ class RoutineListResponse {
   });
 
   factory RoutineListResponse.fromJson(Map<String, dynamic> json) {
-    final dataMap = json['data'] ?? {};
-    final itemsList = (dataMap['items'] as List?)?.map((e) => RoutineItem.fromJson(e)).toList() ?? [];
-    
-    // Fallback if data is a direct list (like pinned endpoint)
-    List<RoutineItem> directList = [];
-    if (json['data'] is List) {
-      directList = (json['data'] as List).map((e) => RoutineItem.fromJson(e)).toList();
-    }
+    final data = json['data'];
+    final dataMap = data is Map<String, dynamic> ? data : <String, dynamic>{};
+    final items = data is List
+        ? data
+        : dataMap['items'] is List
+        ? dataMap['items'] as List
+        : const [];
 
     return RoutineListResponse(
-      success: json['success'] ?? false,
-      message: json['message'] ?? '',
-      items: json['data'] is List ? directList : itemsList,
-      meta: dataMap['meta'] != null ? RoutineMeta.fromJson(dataMap['meta']) : null,
+      success: json['success'] == true,
+      message: json['message']?.toString() ?? '',
+      items: items
+          .whereType<Map<String, dynamic>>()
+          .map(RoutineItem.fromJson)
+          .toList(),
+      meta: dataMap['meta'] is Map<String, dynamic>
+          ? RoutineMeta.fromJson(dataMap['meta'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
@@ -74,7 +82,11 @@ class RoutineDetailsResponse {
   final String message;
   final RoutineItem? data;
 
-  RoutineDetailsResponse({required this.success, required this.message, this.data});
+  RoutineDetailsResponse({
+    required this.success,
+    required this.message,
+    this.data,
+  });
 
   factory RoutineDetailsResponse.fromJson(Map<String, dynamic> json) {
     return RoutineDetailsResponse(
@@ -92,6 +104,16 @@ class RoutineItem {
   final String packageId;
   final String programType;
   final String? examDate;
+  final String? track;
+  final String? routineType;
+  final String? routineNumber;
+  final int? academicYear;
+  final String? sessionLabel;
+  final String? fileMimeType;
+  final String? filePath;
+  final String? fileUrl;
+  final bool isPublished;
+  final RoutinePackage? package;
   final bool isPinned;
   final String? createdAt;
   final String? updatedAt;
@@ -103,6 +125,16 @@ class RoutineItem {
     required this.packageId,
     required this.programType,
     this.examDate,
+    this.track,
+    this.routineType,
+    this.routineNumber,
+    this.academicYear,
+    this.sessionLabel,
+    this.fileMimeType,
+    this.filePath,
+    this.fileUrl,
+    this.isPublished = false,
+    this.package,
     required this.isPinned,
     this.createdAt,
     this.updatedAt,
@@ -115,12 +147,43 @@ class RoutineItem {
       description: json['description'],
       packageId: json['package_id'] ?? '',
       programType: json['program_type'] ?? '',
-      examDate: json['exam_date'],
-      isPinned: json['is_pinned'] ?? false,
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      examDate: json['exam_date']?.toString(),
+      track: json['track']?.toString(),
+      routineType: json['routine_type']?.toString(),
+      routineNumber: json['routine_number']?.toString(),
+      academicYear: json['academic_year'] is num
+          ? (json['academic_year'] as num).toInt()
+          : int.tryParse(json['academic_year']?.toString() ?? ''),
+      sessionLabel: json['session_label']?.toString(),
+      fileMimeType: json['file_mime_type']?.toString(),
+      filePath: json['file_path']?.toString(),
+      fileUrl: json['file_url']?.toString(),
+      isPublished: json['is_published'] == true,
+      package: json['package'] is Map<String, dynamic>
+          ? RoutinePackage.fromJson(json['package'] as Map<String, dynamic>)
+          : null,
+      isPinned: json['is_pinned'] == true,
+      createdAt: json['created_at']?.toString(),
+      updatedAt: json['updated_at']?.toString(),
     );
   }
+}
+
+class RoutinePackage {
+  final String id;
+  final String title;
+
+  const RoutinePackage({required this.id, required this.title});
+
+  factory RoutinePackage.fromJson(Map<String, dynamic> json) => RoutinePackage(
+    id: json['id']?.toString() ?? '',
+    title: json['title']?.toString() ?? '',
+  );
+}
+
+int _asInt(dynamic value) {
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
 }
 
 class RoutineMeta {

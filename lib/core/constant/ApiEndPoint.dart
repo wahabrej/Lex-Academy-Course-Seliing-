@@ -98,8 +98,8 @@ class ApiEndPoint {
   static String packageQuestionBanks(String packageId) => "$baseUrl/question-banks?package_id=$packageId";
 
   // 11. Book References & 12. Suggestions
-  static String bookReferences(String packageId) => "$baseUrl/book-references?packageId=$packageId";
-  static String suggestions(String packageId) => "$baseUrl/suggestions?packageId=$packageId";
+  static const String bookReferences = "$baseUrl/book-references";
+  static const String suggestions = "$baseUrl/suggestions";
 
   // --- General Library Items ---
   static const String legalResearch = "$baseUrl/legal-research";

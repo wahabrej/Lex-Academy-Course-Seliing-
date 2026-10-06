@@ -8,9 +8,12 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // আর্গুমেন্ট থেকে packageId এবং packageName গ্রহণ করা
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final rawArguments = ModalRoute.of(context)?.settings.arguments;
+    final args = rawArguments is Map<String, dynamic> ? rawArguments : null;
     final String packageId = args?['packageId'] ?? '';
     final String packageName = args?['packageName'] ?? 'প্যাকেজ ড্যাশবোর্ড';
+    final String program = args?['program']?.toString() ?? '';
+    final String track = args?['track']?.toString() ?? '';
 
     final List<Map<String, dynamic>> modules = [
       {
@@ -91,12 +94,19 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF072B3E),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           packageName,
-          style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -133,6 +143,9 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
                     module['color'],
                     module['route'],
                     packageId,
+                    packageName,
+                    program,
+                    track,
                   );
                 },
               ),
@@ -159,13 +172,22 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
             ),
             child: const Text(
               'ENROLLED',
-              style: TextStyle(color: Color(0xFF072B3E), fontSize: 10, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Color(0xFF072B3E),
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           SizedBox(height: 12.h),
           Text(
             name,
-            style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold, height: 1.3),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              height: 1.3,
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -179,12 +201,29 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildModuleCard(BuildContext context, String title, String subtitle, IconData icon, Color color, String? route, String packageId) {
+  Widget _buildModuleCard(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    String? route,
+    String packageId,
+    String packageName,
+    String program,
+    String track,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -192,7 +231,16 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
           onTap: () {
             if (route != null) {
               // প্রতিটি মডিউলে যাওয়ার সময় packageId আর্গুমেন্ট হিসেবে পাঠানো হচ্ছে
-              Navigator.pushNamed(context, route, arguments: {'packageId': packageId});
+              Navigator.pushNamed(
+                context,
+                route,
+                arguments: {
+                  'packageId': packageId,
+                  'packageName': packageName,
+                  'program': program,
+                  'track': track,
+                },
+              );
             }
           },
           borderRadius: BorderRadius.circular(16.r),
@@ -213,12 +261,20 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
                 const Spacer(),
                 Text(
                   title,
-                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E)),
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF072B3E),
+                  ),
                 ),
                 SizedBox(height: 2.h),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 9.sp, color: Colors.grey[600], height: 1.2),
+                  style: TextStyle(
+                    fontSize: 9.sp,
+                    color: Colors.grey[600],
+                    height: 1.2,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

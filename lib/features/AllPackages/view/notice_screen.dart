@@ -1,108 +1,232 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
-class NoticeScreen extends StatelessWidget {
-  const NoticeScreen({super.key});
+import '../model/package_content_models.dart';
+import '../viewModel/package_content_view_model.dart';
+
+class NoticeScreen extends StatefulWidget {
+  final String packageId;
+  final String? packageName;
+
+  const NoticeScreen({super.key, required this.packageId, this.packageName});
+
+  @override
+  State<NoticeScreen> createState() => _NoticeScreenState();
+}
+
+class _NoticeScreenState extends State<NoticeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PackageContentViewModel>().fetchAnnouncements(
+        widget.packageId,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<PackageContentViewModel>();
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
         children: [
-          _buildHeader(context, 'Announcements'),
+          _header(context, widget.packageName ?? 'Announcements'),
           Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.all(16.w),
-              itemCount: 4,
-              separatorBuilder: (context, index) => SizedBox(height: 12.h),
-              itemBuilder: (context, index) {
-                return _buildNoticeCard(
-                  title: 'পরীক্ষার সময় পরিবর্তন সংক্রান্ত জরুরি বিজ্ঞপ্তি',
-                  date: '২৪ সেপ্টেম্বর ২০২৬',
-                  isPinned: index == 0,
-                );
-              },
-            ),
+            child:
+                viewModel.isLoadingAnnouncements &&
+                    viewModel.announcements.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : viewModel.announcementsError != null &&
+                      viewModel.announcements.isEmpty
+                ? _error(viewModel.announcementsError!, () {
+                    viewModel.fetchAnnouncements(widget.packageId);
+                  })
+                : viewModel.announcements.isEmpty
+                ? const Center(
+                    child: Text('No announcements for this package.'),
+                  )
+                : RefreshIndicator(
+                    onRefresh: () =>
+                        viewModel.fetchAnnouncements(widget.packageId),
+                    child: ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.all(16.w),
+                      itemCount: viewModel.announcements.length,
+                      separatorBuilder: (_, _) => SizedBox(height: 12.h),
+                      itemBuilder: (context, index) =>
+                          _noticeCard(viewModel.announcements[index]),
+                    ),
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, String title) {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Color(0xFF072B3E),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
+  Widget _noticeCard(AnnouncementItem item) {
+    final priorityColor = item.badge?.toLowerCase() == 'urgent'
+        ? Colors.red
+        : const Color(0xFF00838F);
+    return Card(
+      color: Colors.white,
+      elevation: 1,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.r),
+        side: item.isPinned
+            ? const BorderSide(color: Color(0xFFF5B301))
+            : BorderSide.none,
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 24.h),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: EdgeInsets.all(8.r),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10.r)),
-                  child: Icon(Icons.arrow_back_ios_new, color: const Color(0xFF072B3E), size: 16.sp),
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 6.h,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (item.isPinned)
+                  _tag('PINNED', const Color(0xFFB78100), Icons.push_pin),
+                if (item.badge?.isNotEmpty == true)
+                  _tag(item.badge!.toUpperCase(), priorityColor),
+                if (item.createdAt != null)
+                  Text(
+                    DateFormat('dd MMM yyyy').format(item.createdAt!.toLocal()),
+                    style: TextStyle(fontSize: 10.sp, color: Colors.grey[600]),
+                  ),
+              ],
+            ),
+            SizedBox(height: 10.h),
+            Text(
+              item.title,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF072B3E),
+                height: 1.4,
+              ),
+            ),
+            if (item.body?.isNotEmpty == true) ...[
+              SizedBox(height: 8.h),
+              Text(
+                item.body!,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey[700],
+                  height: 1.5,
                 ),
               ),
-              SizedBox(width: 16.w),
-              Text(title, style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white)),
             ],
-          ),
+            if (item.targetAudience?.isNotEmpty == true ||
+                item.program?.isNotEmpty == true) ...[
+              SizedBox(height: 10.h),
+              Wrap(
+                spacing: 6.w,
+                children: [
+                  if (item.targetAudience?.isNotEmpty == true)
+                    _tag(item.targetAudience!, Colors.blueGrey),
+                  if (item.program?.isNotEmpty == true)
+                    _tag(item.program!, Colors.indigo),
+                ],
+              ),
+            ],
+            if (item.link?.isNotEmpty == true) ...[
+              SizedBox(height: 8.h),
+              SelectableText(
+                item.link!,
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  color: Colors.blue.shade700,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildNoticeCard({required String title, required String date, bool isPinned = false}) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        border: isPinned ? Border.all(color: const Color(0xFFF5B301), width: 1) : null,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (isPinned)
-                Row(
-                  children: [
-                    const Icon(Icons.push_pin, color: Color(0xFFF5B301), size: 14),
-                    SizedBox(width: 4.w),
-                    Text('PINNED', style: TextStyle(fontSize: 10.sp, color: const Color(0xFFF5B301), fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              Text(date, style: TextStyle(fontSize: 11.sp, color: Colors.grey[600])),
-            ],
-          ),
-          SizedBox(height: 10.h),
-          Text(
-            title,
-            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E), height: 1.4),
-          ),
-          SizedBox(height: 12.h),
-          Text(
-            'আগামীকালের বিজেএস প্রিলি পরীক্ষাটি সকাল ১০টার পরিবর্তে দুপুর ২টায় অনুষ্ঠিত হবে। বিস্তারিত জানতে লিংকে ক্লিক করুন...',
-            style: TextStyle(fontSize: 12.sp, color: Colors.grey[700], height: 1.5),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+  Widget _tag(String label, Color color, [IconData? icon]) => Container(
+    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(6.r),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 11.r, color: color),
+          SizedBox(width: 3.w),
         ],
+        Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 9.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _header(BuildContext context, String title) => Container(
+    width: double.infinity,
+    decoration: const BoxDecoration(
+      color: Color(0xFF072B3E),
+      borderRadius: BorderRadius.only(
+        bottomLeft: Radius.circular(30),
+        bottomRight: Radius.circular(30),
       ),
-    );
-  }
+    ),
+    child: SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 24.h),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+            ),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _error(String message, VoidCallback retry) => Center(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24.w),
+          child: Text(message, textAlign: TextAlign.center),
+        ),
+        SizedBox(height: 12.h),
+        ElevatedButton(onPressed: retry, child: const Text('Retry')),
+      ],
+    ),
+  );
 }

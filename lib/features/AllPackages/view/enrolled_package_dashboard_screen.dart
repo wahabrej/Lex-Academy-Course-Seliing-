@@ -5,13 +5,21 @@ import 'package:lexverse/core/routes/routesName.dart';
 class EnrolledPackageDashboardScreen extends StatelessWidget {
   final String? packageName;
 
-  const EnrolledPackageDashboardScreen({
-    super.key,
-    this.packageName,
-  });
+  const EnrolledPackageDashboardScreen({super.key, this.packageName});
 
   @override
   Widget build(BuildContext context) {
+    final rawArguments = ModalRoute.of(context)?.settings.arguments;
+    final arguments = rawArguments is Map<String, dynamic>
+        ? rawArguments
+        : <String, dynamic>{};
+    final packageId = arguments['packageId']?.toString() ?? '';
+    final packageTitle =
+        arguments['packageName']?.toString() ??
+        packageName ??
+        '১৯তম বিজেএস প্রিলি প্রস্তুতি';
+    final program = arguments['program']?.toString() ?? 'bjs';
+    final track = arguments['track']?.toString() ?? '';
     // আপনার ডকুমেন্টের ৮টি প্রধান মডিউল + অতিরিক্ত ২টি
     final List<Map<String, dynamic>> modules = [
       {
@@ -90,7 +98,7 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context, packageName ?? '১৯তম বিজেএস প্রিলি প্রস্তুতি'),
+          _buildHeader(context, packageTitle),
           Expanded(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -119,6 +127,10 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
                     module['icon'],
                     module['color'],
                     module['route'],
+                    packageId,
+                    packageTitle,
+                    program,
+                    track,
                   );
                 },
               ),
@@ -165,7 +177,10 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 4.h,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5B301),
                       borderRadius: BorderRadius.circular(6.r),
@@ -198,7 +213,18 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildModuleCard(BuildContext context, String title, String subtitle, IconData icon, Color color, String? route) {
+  Widget _buildModuleCard(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    String? route,
+    String packageId,
+    String packageTitle,
+    String program,
+    String track,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -216,7 +242,16 @@ class EnrolledPackageDashboardScreen extends StatelessWidget {
         child: InkWell(
           onTap: () {
             if (route != null) {
-              Navigator.pushNamed(context, route);
+              Navigator.pushNamed(
+                context,
+                route,
+                arguments: {
+                  'packageId': packageId,
+                  'packageName': packageTitle,
+                  'program': program,
+                  'track': track,
+                },
+              );
             }
           },
           borderRadius: BorderRadius.circular(16.r),

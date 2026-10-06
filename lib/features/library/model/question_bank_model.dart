@@ -28,7 +28,9 @@ class QuestionBankListResponse {
     return QuestionBankListResponse(
       success: json['success'] ?? false,
       message: json['message'] ?? '',
-      items: itemsList.map((e) => QuestionBank.fromJson(e as Map<String, dynamic>)).toList(),
+      items: itemsList
+          .map((e) => QuestionBank.fromJson(e as Map<String, dynamic>))
+          .toList(),
       meta: metaData,
     );
   }
@@ -66,6 +68,7 @@ class QuestionBank {
   final int year;
   final String subject;
   final bool allowDownload;
+  final int downloadCount;
   final String price;
   final String discountPrice;
   final String? pdfUrl;
@@ -84,6 +87,7 @@ class QuestionBank {
     required this.year,
     required this.subject,
     required this.allowDownload,
+    required this.downloadCount,
     required this.price,
     required this.discountPrice,
     this.pdfUrl,
@@ -92,25 +96,36 @@ class QuestionBank {
   });
 
   factory QuestionBank.fromJson(Map<String, dynamic> json) {
-    var packages = json['package_question_banks'] as List? ?? [];
-    
+    final rawPackages = json['package_question_banks'];
+    final packages = rawPackages is List ? rawPackages : const [];
+    final rawTags = json['tags'];
+    final tags = rawTags is List
+        ? rawTags.map((tag) => tag.toString()).toList()
+        : <String>[];
+    final yearValue = json['year'];
+
     return QuestionBank(
       id: json['id']?.toString() ?? '',
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      tags: List<String>.from(json['tags'] ?? []),
-      contentType: json['content_type'] ?? '',
-      programType: json['program_type'] ?? '',
-      examType: json['exam_type'] ?? '',
-      tier: json['tier'] ?? '',
-      year: json['year'] ?? 0,
-      subject: json['subject'] ?? '',
-      allowDownload: json['allow_download'] ?? false,
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      tags: tags,
+      contentType: json['content_type']?.toString() ?? '',
+      programType: json['program_type']?.toString() ?? '',
+      examType: json['exam_type']?.toString() ?? '',
+      tier: json['tier']?.toString() ?? '',
+      year: yearValue is num
+          ? yearValue.toInt()
+          : int.tryParse(yearValue?.toString() ?? '') ?? 0,
+      subject: json['subject']?.toString() ?? '',
+      allowDownload: json['allow_download'] == true,
+      downloadCount: _questionBankInt(json['download_count']),
       price: json['price']?.toString() ?? '0',
       discountPrice: json['discount_price']?.toString() ?? '0',
-      pdfUrl: json['pdf_url'],
-      isUnlocked: json['is_unlocked'] ?? false,
-      associatedPackages: packages.map((e) => AssociatedPackage.fromJson(e)).toList(),
+      pdfUrl: (json['pdf_url'] ?? json['pdf_path'])?.toString(),
+      isUnlocked: json['is_unlocked'] == true,
+      associatedPackages: packages
+          .map((e) => AssociatedPackage.fromJson(e))
+          .toList(),
     );
   }
 }
@@ -129,7 +144,9 @@ class AssociatedPackage {
   });
 
   factory AssociatedPackage.fromJson(Map<String, dynamic> json) {
-    final pkg = json['package'] ?? {};
+    final pkg = json['package'] is Map<String, dynamic>
+        ? json['package'] as Map<String, dynamic>
+        : <String, dynamic>{};
     return AssociatedPackage(
       id: pkg['id']?.toString() ?? '',
       title: pkg['title'] ?? '',
@@ -154,12 +171,17 @@ class QuestionBankMeta {
 
   factory QuestionBankMeta.fromJson(Map<String, dynamic> json) {
     return QuestionBankMeta(
-      total: json['total'] ?? 0,
-      page: json['page'] ?? 1,
-      limit: json['limit'] ?? 10,
-      totalPages: json['total_pages'] ?? 1,
+      total: _questionBankInt(json['total']),
+      page: _questionBankInt(json['page'], 1),
+      limit: _questionBankInt(json['limit'], 10),
+      totalPages: _questionBankInt(json['total_pages'], 1),
     );
   }
+}
+
+int _questionBankInt(dynamic value, [int fallback = 0]) {
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? fallback;
 }
 
 class QuestionBankStringListResponse {
@@ -167,7 +189,11 @@ class QuestionBankStringListResponse {
   final String message;
   final List<String> data;
 
-  QuestionBankStringListResponse({required this.success, required this.message, required this.data});
+  QuestionBankStringListResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
 
   factory QuestionBankStringListResponse.fromJson(Map<String, dynamic> json) {
     return QuestionBankStringListResponse(

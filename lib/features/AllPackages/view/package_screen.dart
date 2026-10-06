@@ -24,11 +24,23 @@ class PackageScreen extends StatelessWidget {
                   // ---------------- টপ ব্যাজ রো ----------------
                   Row(
                     children: [
-                      _buildTopBadge('BJS', const Color(0xFFF5B301), const Color(0xFF072B3E)),
+                      _buildTopBadge(
+                        'BJS',
+                        const Color(0xFFF5B301),
+                        const Color(0xFF072B3E),
+                      ),
                       SizedBox(width: 8.w),
-                      _buildTopBadge('Preliminary', const Color(0xFFE0E0E0), const Color(0xFF1A1A1A)),
+                      _buildTopBadge(
+                        'Preliminary',
+                        const Color(0xFFE0E0E0),
+                        const Color(0xFF1A1A1A),
+                      ),
                       SizedBox(width: 8.w),
-                      _buildTopBadge('Batch 19', const Color(0xFFE0E0E0), const Color(0xFF1A1A1A)),
+                      _buildTopBadge(
+                        'Batch 19',
+                        const Color(0xFFE0E0E0),
+                        const Color(0xFF1A1A1A),
+                      ),
                     ],
                   ),
                   SizedBox(height: 16.h),
@@ -175,11 +187,7 @@ class PackageScreen extends StatelessWidget {
                 color: item.iconBgColor,
                 borderRadius: BorderRadius.circular(10.r),
               ),
-              child: Icon(
-                item.icon,
-                color: item.iconColor,
-                size: 20.sp,
-              ),
+              child: Icon(item.icon, color: item.iconColor, size: 20.sp),
             ),
             const Spacer(),
             Text(

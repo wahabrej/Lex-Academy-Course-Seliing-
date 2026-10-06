@@ -37,24 +37,28 @@ class QuestionBankViewModel extends ChangeNotifier {
   String _selectedProgram = '';
   String _selectedExam = '';
   String _selectedSubject = '';
+  String? _selectedPackageId;
   int _currentPage = 1;
 
   String get search => _search;
   String get selectedProgram => _selectedProgram;
   String get selectedExam => _selectedExam;
   String get selectedSubject => _selectedSubject;
+  String? get selectedPackageId => _selectedPackageId;
 
   void updateFilters({
     String? search,
     String? program,
     String? exam,
     String? subject,
+    String? packageId,
     int? page,
   }) {
     if (search != null) _search = search;
     if (program != null) _selectedProgram = program;
     if (exam != null) _selectedExam = exam;
     if (subject != null) _selectedSubject = subject;
+    if (packageId != null) _selectedPackageId = packageId;
     if (page != null) _currentPage = page;
     notifyListeners();
   }
@@ -67,7 +71,7 @@ class QuestionBankViewModel extends ChangeNotifier {
     if (pRes.success) _programs = pRes.data;
     if (eRes.success) _exams = eRes.data;
     if (sRes.success) _subjects = sRes.data;
-    
+
     notifyListeners();
   }
 
@@ -86,6 +90,7 @@ class QuestionBankViewModel extends ChangeNotifier {
       programType: _selectedProgram,
       examType: _selectedExam,
       subject: _selectedSubject,
+      packageId: _selectedPackageId,
     );
 
     if (response.success) {
@@ -106,13 +111,15 @@ class QuestionBankViewModel extends ChangeNotifier {
 
     final response = await _repository.getQuestionBankDetail(id);
     _isDetailLoading = false;
-    
+
     if (response.success && response.data != null) {
       _selectedBank = response.data;
       notifyListeners();
       return true;
     } else {
-      _errorMessage = response.message.isNotEmpty ? response.message : "Failed to load details";
+      _errorMessage = response.message.isNotEmpty
+          ? response.message
+          : "Failed to load details";
       notifyListeners();
       return false;
     }
@@ -123,6 +130,7 @@ class QuestionBankViewModel extends ChangeNotifier {
     _selectedProgram = '';
     _selectedExam = '';
     _selectedSubject = '';
+    _selectedPackageId = null;
     _currentPage = 1;
     notifyListeners();
   }

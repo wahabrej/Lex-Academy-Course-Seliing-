@@ -12,12 +12,23 @@ class SyllabusListResponse {
   });
 
   factory SyllabusListResponse.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] ?? {};
+    final rawData = json['data'];
+    final data = rawData is Map<String, dynamic>
+        ? rawData
+        : <String, dynamic>{};
+    final rawItems = data['items'];
     return SyllabusListResponse(
-      success: json['success'] ?? false,
-      message: json['message'] ?? '',
-      items: (data['items'] as List?)?.map((e) => SyllabusItem.fromJson(e)).toList() ?? [],
-      meta: data['meta'] != null ? SyllabusMeta.fromJson(data['meta']) : null,
+      success: json['success'] == true,
+      message: json['message']?.toString() ?? '',
+      items: rawItems is List
+          ? rawItems
+                .whereType<Map<String, dynamic>>()
+                .map(SyllabusItem.fromJson)
+                .toList()
+          : [],
+      meta: data['meta'] is Map<String, dynamic>
+          ? SyllabusMeta.fromJson(data['meta'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
@@ -29,6 +40,12 @@ class SyllabusItem {
   final String? track;
   final String packageId;
   final String? createdAt;
+  final String? updatedAt;
+  final String? filePath;
+  final String? fileMimeType;
+  final String? fileUrl;
+  final bool isPublished;
+  final List<SyllabusPackage> packages;
 
   SyllabusItem({
     required this.id,
@@ -37,18 +54,48 @@ class SyllabusItem {
     this.track,
     required this.packageId,
     this.createdAt,
+    this.updatedAt,
+    this.filePath,
+    this.fileMimeType,
+    this.fileUrl,
+    this.isPublished = false,
+    this.packages = const [],
   });
 
   factory SyllabusItem.fromJson(Map<String, dynamic> json) {
     return SyllabusItem(
-      id: json['id'] ?? json['syllabus_id'] ?? '',
-      title: json['title'] ?? '',
-      content: json['content'],
-      track: json['track'],
-      packageId: json['package_id'] ?? '',
-      createdAt: json['created_at'],
+      id: (json['id'] ?? json['syllabus_id'] ?? '').toString(),
+      title: json['title']?.toString() ?? '',
+      content: json['content']?.toString(),
+      track: json['track']?.toString(),
+      packageId: json['package_id']?.toString() ?? '',
+      createdAt: json['created_at']?.toString(),
+      updatedAt: json['updated_at']?.toString(),
+      filePath: json['file_path']?.toString(),
+      fileMimeType: json['file_mime_type']?.toString(),
+      fileUrl: json['file_url']?.toString(),
+      isPublished: json['is_published'] == true,
+      packages: json['packages'] is List
+          ? (json['packages'] as List)
+                .whereType<Map<String, dynamic>>()
+                .map(SyllabusPackage.fromJson)
+                .toList()
+          : const [],
     );
   }
+}
+
+class SyllabusPackage {
+  final String id;
+  final String title;
+
+  const SyllabusPackage({required this.id, required this.title});
+
+  factory SyllabusPackage.fromJson(Map<String, dynamic> json) =>
+      SyllabusPackage(
+        id: json['id']?.toString() ?? '',
+        title: json['title']?.toString() ?? '',
+      );
 }
 
 class SyllabusMeta {
@@ -79,7 +126,11 @@ class SyllabusDetailResponse {
   final String message;
   final SyllabusItem? data;
 
-  SyllabusDetailResponse({required this.success, required this.message, this.data});
+  SyllabusDetailResponse({
+    required this.success,
+    required this.message,
+    this.data,
+  });
 
   factory SyllabusDetailResponse.fromJson(Map<String, dynamic> json) {
     return SyllabusDetailResponse(

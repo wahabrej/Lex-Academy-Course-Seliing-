@@ -45,10 +45,7 @@ class _AllPackagesScreenState extends State<AllPackagesScreen>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: const [
-                _CatalogTabView(),
-                _MyAccessTabView(),
-              ],
+              children: const [_CatalogTabView(), _MyAccessTabView()],
             ),
           ),
         ],
@@ -127,7 +124,7 @@ class _AllPackagesScreenState extends State<AllPackagesScreen>
         labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
         tabs: const [
           Tab(text: 'Catalog'),
-          Tab(text: 'My Access'),
+          Tab(text: 'Enroll Package'),
         ],
       ),
     );
@@ -169,19 +166,19 @@ class _CatalogTabView extends StatelessWidget {
                     if (program.preliminary.isNotEmpty) ...[
                       _buildSectionTitle('$programName Preliminary'),
                       ...program.preliminary.map(
-                            (item) => _PackageCard(item: item),
+                        (item) => _PackageCard(item: item),
                       ),
                     ],
                     if (program.written.isNotEmpty) ...[
                       _buildSectionTitle('$programName Written'),
                       ...program.written.map(
-                            (item) => _PackageCard(item: item),
+                        (item) => _PackageCard(item: item),
                       ),
                     ],
                     if (program.general.isNotEmpty) ...[
                       _buildSectionTitle('$programName General'),
                       ...program.general.map(
-                            (item) => _PackageCard(item: item),
+                        (item) => _PackageCard(item: item),
                       ),
                     ],
                   ],
@@ -266,19 +263,19 @@ class _MyAccessTabViewState extends State<_MyAccessTabView> {
         Expanded(
           child: viewModel.isLoading
               ? const Center(
-            child: CircularProgressIndicator(color: Color(0xFF072B3E)),
-          )
+                  child: CircularProgressIndicator(color: Color(0xFF072B3E)),
+                )
               : viewModel.accessList.isEmpty
               ? _buildEmptyState()
               : ListView.separated(
-            padding: EdgeInsets.all(16.w),
-            itemCount: viewModel.accessList.length,
-            separatorBuilder: (_, __) => SizedBox(height: 12.h),
-            itemBuilder: (context, i) {
-              final item = viewModel.accessList[i];
-              return _AccessTile(item: item);
-            },
-          ),
+                  padding: EdgeInsets.all(16.w),
+                  itemCount: viewModel.accessList.length,
+                  separatorBuilder: (_, __) => SizedBox(height: 12.h),
+                  itemBuilder: (context, i) {
+                    final item = viewModel.accessList[i];
+                    return _AccessTile(item: item);
+                  },
+                ),
         ),
       ],
     );
@@ -321,7 +318,9 @@ class _MyAccessTabViewState extends State<_MyAccessTabView> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 3.h),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF072B3E) : Colors.grey.shade200,
+              color: isSelected
+                  ? const Color(0xFF072B3E)
+                  : Colors.grey.shade200,
               borderRadius: BorderRadius.circular(10.r),
             ),
             child: Text(
@@ -416,7 +415,8 @@ class _PackageCard extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               debugPrint(
-                  "🔍 [Catalog] View Details - ID: ${item.id}, Title: ${item.title}");
+                "🔍 [Catalog] View Details - ID: ${item.id}, Title: ${item.title}",
+              );
               Navigator.pushNamed(
                 context,
                 RouteName.packageDetailScreen,
@@ -466,6 +466,8 @@ class _AccessTile extends StatelessWidget {
             arguments: {
               'packageId': item.id,
               'packageName': item.title,
+              'program': item.program,
+              'track': item.track,
             },
           );
         } else {
@@ -519,7 +521,10 @@ class _AccessTile extends StatelessWidget {
 
                 // Status Badge
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 4.h,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20.r),
@@ -615,10 +620,7 @@ class _AccessTile extends StatelessWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: 9.sp,
-                color: Colors.grey.shade500,
-              ),
+              style: TextStyle(fontSize: 9.sp, color: Colors.grey.shade500),
             ),
             Text(
               value,

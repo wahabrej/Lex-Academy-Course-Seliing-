@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model/package_model.dart';
+import '../model/performance_model.dart';
 import '../repository/package_repository.dart';
 
 class PackageViewModel extends ChangeNotifier {
@@ -23,8 +24,8 @@ class PackageViewModel extends ChangeNotifier {
   List<PackageAccessItem> _accessList = [];
   List<PackageAccessItem> get accessList => _accessList;
 
-  Map<String, dynamic>? _performanceData;
-  Map<String, dynamic>? get performanceData => _performanceData;
+  UserPerformanceAnalytics? _performanceData;
+  UserPerformanceAnalytics? get performanceData => _performanceData;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -32,7 +33,7 @@ class PackageViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  // 1. Fetch Catalog
+  // 1. Fetch Catalog (Regular)
   Future<void> fetchPackageCatalog() async {
     _isLoading = true;
     _errorMessage = null;
@@ -51,10 +52,18 @@ class PackageViewModel extends ChangeNotifier {
 
   // 2. Fetch Enrolled
   Future<void> fetchEnrolledPackages() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     final response = await _repository.getEnrolledPackages();
     if (response.success) {
       _enrolledPackages = response.items;
+    } else {
+      _errorMessage = response.message;
     }
+
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -67,12 +76,20 @@ class PackageViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 4. Fetch Locked Catalog
+  // 4. Fetch Locked Catalog (This is now used for the Catalog tab)
   Future<void> fetchLockedCatalog() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     final response = await _repository.getLockedCatalog();
     if (response.success) {
       _lockedCatalog = response.data;
+    } else {
+      _errorMessage = response.message;
     }
+
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -96,16 +113,21 @@ class PackageViewModel extends ChangeNotifier {
 
     try {
       final response = await _repository.getPackageAccessList(tab);
-      
+
       if (response.success) {
         _accessList = response.items;
-        debugPrint("✅ [PackageViewModel] Received ${_accessList.length} access items.");
-        
+        debugPrint(
+          "✅ [PackageViewModel] Received ${_accessList.length} access items.",
+        );
+
         if (_accessList.isNotEmpty) {
-          // ✅ ফিক্স: সরাসরি .title ব্যবহার করা হয়েছে কারণ এপিআই এখন ফ্ল্যাট ডাটা দিচ্ছে
-          debugPrint("🔍 [PackageViewModel] First item title: ${_accessList[0].title}");
+          debugPrint(
+            "🔍 [PackageViewModel] First item title: ${_accessList[0].title}",
+          );
         } else {
-          debugPrint("⚠️ [PackageViewModel] Access list is empty for tab: $tab");
+          debugPrint(
+            "⚠️ [PackageViewModel] Access list is empty for tab: $tab",
+          );
         }
       } else {
         _errorMessage = response.message;
@@ -134,13 +156,22 @@ class PackageViewModel extends ChangeNotifier {
   Future<void> fetchPackagePerformance(String packageId) async {
     _isLoading = true;
     _errorMessage = null;
+    _performanceData = null;
     notifyListeners();
 
     final data = await _repository.getPackagePerformance(packageId);
-    if (data['success'] != false) {
-      _performanceData = data['data'];
+    final responseData = data['data'];
+    if (data['success'] == true && responseData is Map<String, dynamic>) {
+      _performanceData = UserPerformanceAnalytics.fromJson(responseData);
+      debugPrint(
+        '✅ [Performance] ${_performanceData!.overview.questionsAnswered} answered; '
+        '${_performanceData!.subjectWiseAccuracy.length} subject(s); '
+        '${_performanceData!.overview.topPerformanceGraph.length} score point(s)',
+      );
     } else {
-      _errorMessage = "Failed to load performance data";
+      _errorMessage =
+          data['message']?.toString() ?? 'Failed to load performance data';
+      debugPrint('❌ [Performance] $_errorMessage');
     }
 
     _isLoading = false;

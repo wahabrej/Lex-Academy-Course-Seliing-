@@ -43,70 +43,136 @@ class QuestionBankRepository {
       };
 
       if (search != null && search.isNotEmpty) params['search'] = search;
-      if (programType != null && programType.isNotEmpty) params['program_type'] = programType;
-      if (examType != null && examType.isNotEmpty) params['exam_type'] = examType;
-      if (contentType != null && contentType.isNotEmpty) params['content_type'] = contentType;
+      if (programType != null && programType.isNotEmpty)
+        params['program_type'] = programType;
+      if (examType != null && examType.isNotEmpty)
+        params['exam_type'] = examType;
+      if (contentType != null && contentType.isNotEmpty)
+        params['content_type'] = contentType;
       if (subject != null && subject.isNotEmpty) params['subject'] = subject;
       if (year != null) params['year'] = year.toString();
-      if (packageId != null && packageId.isNotEmpty) params['package_id'] = packageId;
+      if (packageId != null && packageId.isNotEmpty)
+        params['package_id'] = packageId;
 
-      final uri = Uri.parse(ApiEndPoint.questionBanks).replace(queryParameters: params);
+      final uri = Uri.parse(
+        ApiEndPoint.questionBanks,
+      ).replace(queryParameters: params);
       debugPrint("📡 [API] Question Banks: $uri");
       final response = await http.get(uri, headers: headers);
+      debugPrint("📩 [QuestionBankRepo] Status: ${response.statusCode}");
 
       if (response.statusCode == 200) {
-        return QuestionBankListResponse.fromJson(jsonDecode(response.body));
+        final result = QuestionBankListResponse.fromJson(
+          jsonDecode(response.body),
+        );
+        debugPrint(
+          "✅ [QuestionBankRepo] ${result.items.length} item(s), total: ${result.meta?.total ?? 0}"
+          "${result.items.isNotEmpty ? '; first: ${result.items.first.title}' : ''}",
+        );
+        return result;
       } else {
-        return QuestionBankListResponse(success: false, message: 'Server error: ${response.statusCode}', items: []);
+        debugPrint("❌ [QuestionBankRepo] Response: ${response.body}");
+        return QuestionBankListResponse(
+          success: false,
+          message: 'Server error: ${response.statusCode}',
+          items: [],
+        );
       }
     } catch (e) {
-      return QuestionBankListResponse(success: false, message: e.toString(), items: []);
+      debugPrint("❌ [QuestionBankRepo] Exception: $e");
+      return QuestionBankListResponse(
+        success: false,
+        message: e.toString(),
+        items: [],
+      );
     }
   }
 
   Future<QuestionBankStringListResponse> getPrograms() async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(Uri.parse(ApiEndPoint.questionBankPrograms), headers: headers);
+      final response = await http.get(
+        Uri.parse(ApiEndPoint.questionBankPrograms),
+        headers: headers,
+      );
       if (response.statusCode == 200) {
-        return QuestionBankStringListResponse.fromJson(jsonDecode(response.body));
+        return QuestionBankStringListResponse.fromJson(
+          jsonDecode(response.body),
+        );
       }
-      return QuestionBankStringListResponse(success: false, message: 'Error', data: []);
+      return QuestionBankStringListResponse(
+        success: false,
+        message: 'Error',
+        data: [],
+      );
     } catch (e) {
-      return QuestionBankStringListResponse(success: false, message: e.toString(), data: []);
+      return QuestionBankStringListResponse(
+        success: false,
+        message: e.toString(),
+        data: [],
+      );
     }
   }
 
   Future<QuestionBankStringListResponse> getExams() async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(Uri.parse(ApiEndPoint.questionBankExams), headers: headers);
+      final response = await http.get(
+        Uri.parse(ApiEndPoint.questionBankExams),
+        headers: headers,
+      );
       if (response.statusCode == 200) {
-        return QuestionBankStringListResponse.fromJson(jsonDecode(response.body));
+        return QuestionBankStringListResponse.fromJson(
+          jsonDecode(response.body),
+        );
       }
-      return QuestionBankStringListResponse(success: false, message: 'Error', data: []);
+      return QuestionBankStringListResponse(
+        success: false,
+        message: 'Error',
+        data: [],
+      );
     } catch (e) {
-      return QuestionBankStringListResponse(success: false, message: e.toString(), data: []);
+      return QuestionBankStringListResponse(
+        success: false,
+        message: e.toString(),
+        data: [],
+      );
     }
   }
 
   Future<QuestionBankStringListResponse> getSubjects() async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(Uri.parse(ApiEndPoint.questionBankSubjects), headers: headers);
+      final response = await http.get(
+        Uri.parse(ApiEndPoint.questionBankSubjects),
+        headers: headers,
+      );
       if (response.statusCode == 200) {
-        return QuestionBankStringListResponse.fromJson(jsonDecode(response.body));
+        return QuestionBankStringListResponse.fromJson(
+          jsonDecode(response.body),
+        );
       }
-      return QuestionBankStringListResponse(success: false, message: 'Error', data: []);
+      return QuestionBankStringListResponse(
+        success: false,
+        message: 'Error',
+        data: [],
+      );
     } catch (e) {
-      return QuestionBankStringListResponse(success: false, message: e.toString(), data: []);
+      return QuestionBankStringListResponse(
+        success: false,
+        message: e.toString(),
+        data: [],
+      );
     }
   }
 
   Future<QuestionBankDetailResponse> getQuestionBankDetail(String id) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.get(Uri.parse("${ApiEndPoint.questionBanks}/$id"), headers: headers);
+      final response = await http.get(
+        Uri.parse("${ApiEndPoint.questionBanks}/$id"),
+        headers: headers,
+      );
       if (response.statusCode == 200) {
         return QuestionBankDetailResponse.fromJson(jsonDecode(response.body));
       }

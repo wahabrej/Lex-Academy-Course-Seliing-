@@ -28,6 +28,20 @@ import '../../features/splash/onboardingScreen.dart';
 import '../../features/library/view/legal_dictionary_screen.dart';
 
 class AppRoutes {
+  static Map<String, dynamic> _packageArguments(BuildContext context) {
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    if (arguments is Map<String, dynamic>) return arguments;
+    throw ArgumentError(
+      'A package must be selected before opening this module.',
+    );
+  }
+
+  static String _requiredPackageId(BuildContext context) {
+    final packageId = _packageArguments(context)['packageId'];
+    if (packageId is String && packageId.isNotEmpty) return packageId;
+    throw ArgumentError('The selected package is missing its ID.');
+  }
+
   static Map<String, WidgetBuilder> routes = {
     '/': (context) => const Splashscreen(),
     RouteName.parentScreen: (context) => const ParentScreen(),
@@ -43,16 +57,39 @@ class AppRoutes {
     RouteName.packageScreen: (context) => const PackageScreen(),
     RouteName.liveExamScreen: (context) => const LiveExamScreen(),
     RouteName.archivescreen: (context) => const ArchiveScreen(),
-    RouteName.routineScreen: (context) => const RoutineScreen(),
+    RouteName.routineScreen: (context) => RoutineScreen(
+      packageId: _requiredPackageId(context),
+      programType: _packageArguments(context)['program']?.toString() ?? 'bjs',
+    ),
     RouteName.notesScreen: (context) => const NotesScreen(),
-    RouteName.noticeScreen: (context) => const NoticeScreen(),
-    RouteName.resultScreen: (context) => const ResultScreen(),
-    RouteName.syllabusScreen: (context) => const SyllabusScreen(),
-    RouteName.dashboardScreen: (context) => const DashboardScreen(),
-    RouteName.suggestionScreen: (context) => const SuggestionScreen(),
-    RouteName.bookReferenceScreen: (context) => const BookReferenceScreen(),
+    RouteName.noticeScreen: (context) => NoticeScreen(
+      packageId: _requiredPackageId(context),
+      packageName: _packageArguments(context)['packageName']?.toString(),
+    ),
+    RouteName.resultScreen: (context) =>
+        ResultScreen(packageId: _requiredPackageId(context)),
+    RouteName.syllabusScreen: (context) => SyllabusScreen(
+      packageId: _requiredPackageId(context),
+      packageName: _packageArguments(context)['packageName']?.toString(),
+    ),
+    RouteName.dashboardScreen: (context) => DashboardScreen(
+      packageId: _requiredPackageId(context),
+      packageName: _packageArguments(context)['packageName']?.toString(),
+    ),
+    RouteName.suggestionScreen: (context) => SuggestionScreen(
+      packageId: _requiredPackageId(context),
+      packageName: _packageArguments(context)['packageName']?.toString(),
+      programType: _packageArguments(context)['program']?.toString(),
+      track: _packageArguments(context)['track']?.toString(),
+    ),
+    RouteName.bookReferenceScreen: (context) => BookReferenceScreen(
+      packageId: _requiredPackageId(context),
+      packageName: _packageArguments(context)['packageName']?.toString(),
+    ),
     RouteName.legalDictionaryScreen: (context) => const LegalDictionaryScreen(),
-    RouteName.enrolledPackageDashboard: (context) => const EnrolledPackageDashboardScreen(),
-    RouteName.questionBanks: (context) => const QuestionBankScreen(),
+    RouteName.enrolledPackageDashboard: (context) =>
+        const EnrolledPackageDashboardScreen(),
+    RouteName.questionBanks: (context) =>
+        QuestionBankScreen(packageId: _requiredPackageId(context)),
   };
 }

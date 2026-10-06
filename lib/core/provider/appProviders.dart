@@ -16,6 +16,7 @@ import '../../features/AllPackages/viewModel/package_view_model.dart';
 import '../../features/AllPackages/viewModel/routine_view_model.dart';
 import '../../features/AllPackages/viewModel/exam_view_model.dart';
 import '../../features/AllPackages/viewModel/syllabus_view_model.dart';
+import '../../features/AllPackages/viewModel/package_content_view_model.dart';
 
 class AppProviders {
   static List<ChangeNotifierProvider> getProviders() {
@@ -70,6 +71,9 @@ class AppProviders {
       ),
       ChangeNotifierProvider<SyllabusViewModel>(
         create: (context) => SyllabusViewModel(),
+      ),
+      ChangeNotifierProvider<PackageContentViewModel>(
+        create: (context) => PackageContentViewModel(),
       ),
     ];
   }

@@ -5,7 +5,7 @@ import '../viewModel/exam_view_model.dart';
 
 class ResultScreen extends StatefulWidget {
   final String packageId;
-  const ResultScreen({super.key, this.packageId = "204259de-0306-4e04-98d6-8e15ab9ad783"});
+  const ResultScreen({super.key, required this.packageId});
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -39,48 +39,58 @@ class _ResultScreenState extends State<ResultScreen> {
           // ---------------- বডি ----------------
           Expanded(
             child: examVm.isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF072B3E)))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF072B3E)),
+                  )
                 : examVm.errorMessage != null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          examVm.errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                        SizedBox(height: 10.h),
+                        ElevatedButton(
+                          onPressed: () {
+                            examVm.fetchExamAttempts(
+                              packageId: widget.packageId,
+                            );
+                            examVm.fetchSubjectBreakdown(widget.packageId);
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 16.h,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ---------------- ট্যাব রো ----------------
+                        Row(
                           children: [
-                            Text(examVm.errorMessage!, style: const TextStyle(color: Colors.red)),
-                            SizedBox(height: 10.h),
-                            ElevatedButton(
-                              onPressed: () {
-                                examVm.fetchExamAttempts(packageId: widget.packageId);
-                                examVm.fetchSubjectBreakdown(widget.packageId);
-                              },
-                              child: const Text('Retry'),
-                            )
+                            _buildTabChip('Result', 0),
+                            SizedBox(width: 8.w),
+                            _buildTabChip('Merit List', 1),
+                            SizedBox(width: 8.w),
+                            _buildTabChip('Details', 2),
                           ],
                         ),
-                      )
-                    : SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ---------------- ট্যাব রো ----------------
-                            Row(
-                              children: [
-                                _buildTabChip('Result', 0),
-                                SizedBox(width: 8.w),
-                                _buildTabChip('Merit List', 1),
-                                SizedBox(width: 8.w),
-                                _buildTabChip('Details', 2),
-                              ],
-                            ),
-                            SizedBox(height: 20.h),
+                        SizedBox(height: 20.h),
 
-                            // ---------------- ট্যাব কন্টেন্ট ----------------
-                            if (_selectedTab == 0) _buildResultTab(examVm),
-                            if (_selectedTab == 1) _buildMeritListTab(examVm),
-                            if (_selectedTab == 2) _buildDetailsTab(examVm),
-                          ],
-                        ),
-                      ),
+                        // ---------------- ট্যাব কন্টেন্ট ----------------
+                        if (_selectedTab == 0) _buildResultTab(examVm),
+                        if (_selectedTab == 1) _buildMeritListTab(examVm),
+                        if (_selectedTab == 2) _buildDetailsTab(examVm),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
@@ -194,25 +204,27 @@ class _ResultScreenState extends State<ResultScreen> {
 
     return Column(
       children: [
-        ...examVm.attempts.map((attempt) => Padding(
-          padding: EdgeInsets.only(bottom: 16.h),
-          child: _buildResultCard(
-            date: attempt.startedAt != null 
-                ? "${attempt.startedAt!.day}/${attempt.startedAt!.month}/${attempt.startedAt!.year}" 
-                : 'N/A',
-            title: 'Exam ID: ${attempt.examId}',
-            subject: attempt.status.toUpperCase(),
-            score: "${attempt.score ?? 0} / 100",
-            rank: 'Completed',
-            onTapMerit: () {
-              setState(() {
-                _selectedExamId = attempt.examId;
-                _selectedTab = 1;
-              });
-              examVm.fetchMeritList(attempt.examId);
-            },
+        ...examVm.attempts.map(
+          (attempt) => Padding(
+            padding: EdgeInsets.only(bottom: 16.h),
+            child: _buildResultCard(
+              date: attempt.startedAt != null
+                  ? "${attempt.startedAt!.day}/${attempt.startedAt!.month}/${attempt.startedAt!.year}"
+                  : 'N/A',
+              title: 'Exam ID: ${attempt.examId}',
+              subject: attempt.status.toUpperCase(),
+              score: "${attempt.score ?? 0} / 100",
+              rank: 'Completed',
+              onTapMerit: () {
+                setState(() {
+                  _selectedExamId = attempt.examId;
+                  _selectedTab = 1;
+                });
+                examVm.fetchMeritList(attempt.examId);
+              },
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
@@ -229,11 +241,15 @@ class _ResultScreenState extends State<ResultScreen> {
         if (_selectedExamId != null) ...[
           Text(
             'Selected Exam ID: $_selectedExamId',
-            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E)),
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF072B3E),
+            ),
           ),
           SizedBox(height: 10.h),
         ],
-        
+
         Container(
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
           decoration: BoxDecoration(
@@ -267,17 +283,21 @@ class _ResultScreenState extends State<ResultScreen> {
           const Center(
             child: Padding(
               padding: EdgeInsets.all(20.0),
-              child: Text('অনুগ্রহ করে Result ট্যাব থেকে যেকোনো পরীক্ষার View Merit List বাটনে ক্লিক করুন।'),
+              child: Text(
+                'অনুগ্রহ করে Result ট্যাব থেকে যেকোনো পরীক্ষার View Merit List বাটনে ক্লিক করুন।',
+              ),
             ),
           )
         else
-          ...meritItems.map((student) => _buildMeritListItem(
-                name: student.name,
-                dept: student.department ?? 'সাধারণ',
-                score: student.score,
-                rank: student.rank.toString(),
-                image: student.image,
-              )),
+          ...meritItems.map(
+            (student) => _buildMeritListItem(
+              name: student.name,
+              dept: student.department ?? 'সাধারণ',
+              score: student.score,
+              rank: student.rank.toString(),
+              image: student.image,
+            ),
+          ),
       ],
     );
   }
@@ -302,17 +322,23 @@ class _ResultScreenState extends State<ResultScreen> {
       children: [
         Text(
           'Subject Breakdown',
-          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E)),
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF072B3E),
+          ),
         ),
         SizedBox(height: 12.h),
-        ...items.map((d) => _buildSubjectDetailCard(
-              subject: d.subject,
-              correct: d.correct.toString(),
-              wrong: d.wrong.toString(),
-              skipped: d.skipped.toString(),
-              score: d.score,
-              accuracy: d.accuracy,
-            )),
+        ...items.map(
+          (d) => _buildSubjectDetailCard(
+            subject: d.subject,
+            correct: d.correct.toString(),
+            wrong: d.wrong.toString(),
+            skipped: d.skipped.toString(),
+            score: d.score,
+            accuracy: d.accuracy,
+          ),
+        ),
       ],
     );
   }
@@ -334,7 +360,13 @@ class _ResultScreenState extends State<ResultScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 3))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
@@ -351,8 +383,22 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
                 child: Column(
                   children: [
-                    Text('Archive', style: TextStyle(fontSize: 8.sp, fontWeight: FontWeight.bold, color: const Color(0xFF2E7D32))),
-                    Text('Exam', style: TextStyle(fontSize: 8.sp, fontWeight: FontWeight.bold, color: const Color(0xFF2E7D32))),
+                    Text(
+                      'Archive',
+                      style: TextStyle(
+                        fontSize: 8.sp,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF2E7D32),
+                      ),
+                    ),
+                    Text(
+                      'Exam',
+                      style: TextStyle(
+                        fontSize: 8.sp,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF2E7D32),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -361,9 +407,23 @@ class _ResultScreenState extends State<ResultScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1A1A1A), height: 1.4)),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1A1A1A),
+                        height: 1.4,
+                      ),
+                    ),
                     SizedBox(height: 6.h),
-                    Text('$subject • $date', style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade600)),
+                    Text(
+                      '$subject • $date',
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -377,21 +437,43 @@ class _ResultScreenState extends State<ResultScreen> {
             children: [
               Column(
                 children: [
-                  Text('স্কোর', style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade600)),
+                  Text(
+                    'স্কোর',
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                   SizedBox(height: 4.h),
-                  Text(score, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFFE53935))),
+                  Text(
+                    score,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFE53935),
+                    ),
+                  ),
                 ],
               ),
               ElevatedButton(
                 onPressed: onTapMerit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF072B3E),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
                 ),
-                child: Text('View Merit List', style: TextStyle(fontSize: 12.sp, color: Colors.white, fontWeight: FontWeight.bold)),
-              )
+                child: Text(
+                  'View Merit List',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -423,18 +505,41 @@ class _ResultScreenState extends State<ResultScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold)),
-                Text(dept, style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  dept,
+                  style: TextStyle(fontSize: 11.sp, color: Colors.grey),
+                ),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('Marks: $score', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.green)),
-              Text('Rank: #$rank', style: TextStyle(fontSize: 11.sp, color: Colors.orange.shade800, fontWeight: FontWeight.bold)),
+              Text(
+                'Marks: $score',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              Text(
+                'Rank: #$rank',
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  color: Colors.orange.shade800,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -459,24 +564,50 @@ class _ResultScreenState extends State<ResultScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(subject, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF072B3E))),
+          Text(
+            subject,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF072B3E),
+            ),
+          ),
           SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Correct: $correct', style: TextStyle(fontSize: 12.sp, color: Colors.green)),
-              Text('Wrong: $wrong', style: TextStyle(fontSize: 12.sp, color: Colors.red)),
-              Text('Skipped: $skipped', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
+              Text(
+                'Correct: $correct',
+                style: TextStyle(fontSize: 12.sp, color: Colors.green),
+              ),
+              Text(
+                'Wrong: $wrong',
+                style: TextStyle(fontSize: 12.sp, color: Colors.red),
+              ),
+              Text(
+                'Skipped: $skipped',
+                style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+              ),
             ],
           ),
           const Divider(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Score: $score', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
-              Text('Accuracy: $accuracy', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.blue)),
+              Text(
+                'Score: $score',
+                style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Accuracy: $accuracy',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
